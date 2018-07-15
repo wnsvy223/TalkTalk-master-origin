@@ -21,7 +21,7 @@ https://youtu.be/CQqFaySO2u0
   <img width="200" src="https://user-images.githubusercontent.com/28755528/40969188-389ba924-68f2-11e8-9155-728a70a24145.png">
   <img width="200" src="https://user-images.githubusercontent.com/28755528/40969253-5f6a1e6e-68f2-11e8-9b77-a7f9d8565783.png">
   <img width="200" src="https://user-images.githubusercontent.com/28755528/42730597-8365a378-8833-11e8-9fd6-ff06cb735b54.png">
-  <img width="200" src="https://user-images.githubusercontent.com/28755528/40969288-7b92ed64-68f2-11e8-8a45-df21bb6dcd25.png">
+  <img width="200" src="https://user-images.githubusercontent.com/28755528/42730612-cee720f6-8833-11e8-94e5-e215186861cc.png">
   <img width="200" src="https://user-images.githubusercontent.com/28755528/42730568-9b980a5e-8832-11e8-8f23-16dad132377a.png">
 </div>  
 
