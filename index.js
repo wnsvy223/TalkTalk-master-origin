@@ -1,7 +1,5 @@
 'use strict'
-// firebase deploy시에 FCM, RealTimeDatabase가 모두 설정되어있어서
-// 데이터베이스 Rule이 바뀜. 현재로써는, read가 true로 되어있어야 푸시메시지를 통해 들어간 액티비티에 데이터값이 넘어옴.
-// true상태는 public 상태이므로 보안에 안좋음.
+
 const functions  = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
