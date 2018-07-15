@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:selectableItemBackground">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/user_single_image"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="15dp"
+        android:src ="@drawable/ic_unknown_user"
+         />
+
+    <TextView
+        android:id="@+id/user_group_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:textColor="@android:color/black"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textSize="15sp"
+        android:layout_alignTop="@+id/user_single_image"
+        android:layout_toEndOf="@+id/user_single_image" />
+
+    <TextView
+        android:id="@+id/user_last_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:maxHeight="20dp"
+        android:maxWidth="180dp"
+        android:ellipsize="end"
+        android:textSize="13sp"
+        android:text="채팅방이 생성되었습니다."
+        android:layout_gravity="bottom"
+        android:layout_alignStart="@+id/user_group_name"
+        android:layout_alignBottom="@+id/user_single_image" />
+
+    <ImageView
+        android:id="@+id/user_single_online_icon"
+        android:layout_width="8dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/user_group_name"
+        android:layout_marginLeft="10dp"
+        android:layout_toEndOf="@+id/user_group_name"
+        android:visibility="invisible"
+        app:srcCompat="@drawable/online_icon" />
+
+    <TextView
+        android:id="@+id/time_stamp"
+        android:gravity="center"
+        android:layout_width="80dp"
+        android:textSize="13sp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@+id/user_last_message"
+        android:layout_below="@+id/frameLayout7" />
+
+    <FrameLayout
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="26dp"
+        android:id="@+id/frameLayout7"
+        android:layout_alignBottom="@+id/user_group_name"
+        android:layout_marginBottom="5dp"
+        android:layout_alignParentEnd="true">
+
+        <ImageView
+            android:id="@+id/badgebackground"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            android:background="@drawable/roundbackground"/>
+        <!--:visibility="invisible"-->
+
+        <TextView
+            android:id="@+id/badgecount"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="c"
+            android:visibility="invisible"
+            android:textColor="#FFFFFF"
+            android:textSize="14dp"
+             />
+
+    </FrameLayout>
+
+</RelativeLayout>
+

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/view08"
+    tools:context="com.example.home.mytalk.Activity.RegisterActivity">
+
+
+
+    <EditText
+        android:id="@+id/email"
+        android:gravity="center"
+        android:layout_width="270dp"
+        android:layout_height="40dp"
+        android:textSize="15dp"
+        android:background="@drawable/round"
+        android:hint="이메일 형식의 아이디를 입력하세요"
+        android:layout_marginTop="26dp"
+        android:layout_alignTop="@+id/text_email"
+        android:layout_alignStart="@+id/password" />
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="270dp"
+        android:textSize="15dp"
+        android:gravity="center"
+        android:layout_height="40dp"
+        android:layout_marginTop="11dp"
+        android:hint="5글자 이상의 숫자,문자를 입력하세요"
+        android:background="@drawable/round"
+        android:layout_below="@+id/text_password"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:id="@+id/name"
+        android:layout_width="270dp"
+        android:textSize="15dp"
+        android:hint="이름을 입력하세요"
+        android:gravity="center"
+        android:layout_height="40dp"
+        android:background="@drawable/round"
+        android:layout_marginTop="54dp"
+        android:layout_below="@+id/password"
+        android:layout_alignStart="@+id/password" />
+
+    <EditText
+        android:id="@+id/phone"
+        android:layout_width="270dp"
+        android:textSize="15dp"
+        android:hint="ex)000-0000-0000"
+        android:gravity="center"
+        android:layout_height="40dp"
+        android:layout_marginTop="11dp"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/round"
+        android:layout_below="@+id/text_phone"
+        android:layout_alignStart="@+id/name" />
+
+    <TextView
+        android:id="@+id/text_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NAME"
+        android:layout_below="@+id/password"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="31dp" />
+
+    <TextView
+        android:id="@+id/text_phone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PHONE NUMBER"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/name"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:id="@+id/text_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PASSWORD"
+        android:layout_marginTop="31dp"
+        android:layout_below="@+id/email"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:id="@+id/text_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="E-MAIL"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="33dp" />
+
+    <Button
+        android:id="@+id/reg"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="확   인"
+        android:background="@drawable/mainbutton"
+        style="@style/ButtonText"
+        android:layout_marginTop="800dp"
+        android:layout_below="@+id/phone"
+        android:layout_alignStart="@+id/phone"
+        android:layout_alignEnd="@+id/phone" />
+
+    <Button
+        android:id="@+id/quit"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="취   소"
+        android:background="@drawable/mainbutton"
+        style="@style/ButtonText"
+        android:layout_below="@+id/reg"
+        android:layout_alignStart="@+id/phone"
+        android:layout_alignEnd="@+id/phone" />
+
+    <Button
+        android:id="@+id/checkId"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:textSize="8sp"
+        android:gravity="center"
+        android:text="중복체크"
+        style="@style/ButtonText"
+        android:background="@drawable/mainbutton"
+        android:layout_alignBottom="@+id/email"
+        android:layout_toEndOf="@+id/email"
+        android:layout_alignTop="@+id/email" />
+
+</RelativeLayout>

@@ -1,0 +1,49 @@
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/coordinatorLayout"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.example.home.mytalk.Fragment.Fragment_Friend">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvFriend"
+        android:scrollbars="vertical"
+        android:layout_above="@+id/ettext"
+        android:layout_marginTop="3dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+    <com.w9jds.FloatingActionMenu
+        android:id="@+id/action_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:base_src="@drawable/ic_add_black_24dp"
+        app:base_background="@color/fabPrimary"
+        app:base_marginEnd="20dp"
+        app:base_marginBottom="90dp"
+        app:overlay_color="#66000000"
+        app:item_spacing="16dp"
+        app:label_marginEnd="8dp">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/searchEmail"
+            app:backgroundTint="@color/fabPressed"
+            android:src="@drawable/ic_email"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:contentDescription="이메일로 검색" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/searchName"
+            app:backgroundTint="@color/fabPressed"
+            android:src="@drawable/user_add_icon"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:contentDescription="이름으로 검색" />
+
+    </com.w9jds.FloatingActionMenu>
+
+
+</android.support.design.widget.CoordinatorLayout>

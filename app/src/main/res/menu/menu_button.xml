@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.home.mytalk.Activity.GroupChatActivity">
+    <item android:id="@+id/action_button_ok"
+        android:title="확인"
+        app:showAsAction="always|withText"/>
+</menu>
+

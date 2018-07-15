@@ -1,0 +1,92 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/fabPressed">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:id="@+id/ivUserBack"
+        android:background="#000000"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/ivUser"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_unknown_user"
+        android:layout_marginTop="160dp"
+        app:civ_border_width="2dp"
+        app:civ_border_color="#FFFFFF"
+        android:layout_centerHorizontal="true"
+        />
+
+    <ProgressBar
+        android:id="@+id/Progress"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignTop="@+id/ivUser"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="13dp" />
+
+<!--
+    <ListView
+        android:id="@+id/Profile_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="240dp"
+        android:background="@color/fabPressed"
+        android:foregroundGravity="bottom" />
+-->
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:backgroundTint="@color/fabPrimary"
+        android:src="@drawable/camera"
+        android:layout_marginEnd="20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="90dp" />
+
+    <TextView
+        android:id="@+id/textId"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/ivUser"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/round"
+        android:gravity="center"
+        android:textSize="15sp"
+        android:layout_marginTop="25dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textName"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/textId"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/round"
+        android:gravity="center"
+        android:layout_marginTop="15dp"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textPhoneNum"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/textName"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/round"
+        android:layout_marginTop="15dp"
+        android:gravity="center"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+</RelativeLayout>

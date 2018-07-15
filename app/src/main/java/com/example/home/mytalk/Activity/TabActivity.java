@@ -1,0 +1,290 @@
+package com.example.home.mytalk.Activity;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+import com.example.home.mytalk.Fragment.Fragment_Chat;
+import com.example.home.mytalk.Fragment.Fragment_Friend;
+import com.example.home.mytalk.Fragment.Fragment_Home;
+import com.example.home.mytalk.Fragment.Fragment_Profile;
+import com.example.home.mytalk.R;
+import com.example.home.mytalk.Service.LogOutTaskService;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.rahimlis.badgedtablayout.BadgedTabLayout;
+
+import java.util.List;
+
+public class TabActivity extends AppCompatActivity{
+
+    private static final String TAG = "TabActivity" ;
+    private DatabaseReference databaseReference;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseUser user;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+    public ViewPager mViewPager;
+    private final long	FINSH_INTERVAL_TIME = 2000;
+    private long	backPressedTime = 0;
+    public Toolbar toolbar;
+    public String currentUid;
+    public static Context mContext;
+    public BadgedTabLayout tabLayout;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_tab);
+
+        mContext = this;
+        startService(new Intent(this, LogOutTaskService.class));
+        //앱 강제종료 모니터링 서비스 실행. (실행중인 앱 보기에서 앱을 강제 종료시 DB와 사용자 인증서비스에 로그아웃상태로 변경해주는 서비스)
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("email",MODE_PRIVATE );
+        currentUid = sharedPreferences.getString("uid", "");
+
+        databaseReference =  FirebaseDatabase.getInstance().getReference("users");
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                user = firebaseAuth.getCurrentUser();
+            }
+        };
+
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setOffscreenPageLimit(3);
+        tabLayout = (BadgedTabLayout) findViewById(R.id.tabs);  //배지 세팅 가능한 탭 레이아웃 라이브러리
+        tabLayout.setupWithViewPager(mViewPager);
+        tabLayout.setIcon(0, R.drawable.home);
+        tabLayout.setIcon(1, R.drawable.friend);
+        tabLayout.setIcon(2, R.drawable.chat);
+        tabLayout.setIcon(3, R.drawable.user_profile_edit2);
+
+        mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()){
+                    case 0:
+                        toolbar.setTitle("홈");
+                        break;
+                    case 1:
+                        toolbar.setTitle("친구");
+                        break;
+                    case 2:
+                        toolbar.setTitle("채팅");
+                        break;
+                    case 3:
+                        toolbar.setTitle("프로필");
+                        break;
+                    default:
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
+        Intent intent = getIntent();
+        String contactRequest = intent.getStringExtra("FriendChatUid");
+        if(!TextUtils.isEmpty(contactRequest)){
+            mViewPager.setCurrentItem(1); // 친추요청 푸시메시지를 통해 탭액티비티로 들어오면 친구목록 탭으로 이동
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
+        notificationManagerCompat.cancelAll(); //탭 화면 생성되면 날아와있던 노티들 삭제.
+
+        Set_On(); //로그인
+
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("friendChatRoom").child(currentUid);
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                        long totalCount = 0;
+                        for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                            if(postSnapshot.hasChild("badgeCount")) {
+                                long count = (long) postSnapshot.child("badgeCount").getValue();
+                                totalCount += count;
+                            }
+                        }
+                        if (totalCount == 0) {
+                            tabLayout.setBadgeText(2, null); //배지 카운트 0이면 2번째 인자값 null로 주면 VISIBLE GONE(8)으로 됨.
+                        } else {
+                            tabLayout.setBadgeText(2, String.valueOf(totalCount)); //탭레이아웃 배지세팅 각 채팅방의 배지의 총합값
+                        }
+
+                }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Set_Off(); //로그아웃
+    }
+
+    public static void translateAnim(float xStart, float xEnd, float yStart, float yEnd, int duration, RelativeLayout layout) {
+        TranslateAnimation translateAnimation = new TranslateAnimation(
+                Animation.RELATIVE_TO_SELF,xStart,
+                Animation.RELATIVE_TO_SELF, xEnd,
+                Animation.RELATIVE_TO_SELF,yStart,
+                Animation.RELATIVE_TO_SELF,yEnd);
+        translateAnimation.setDuration(duration);
+        translateAnimation.setFillAfter(true);
+        layout.startAnimation(translateAnimation);
+    }
+
+    @Override
+    public void onBackPressed() {
+        long tempTime = System.currentTimeMillis();
+        long intervalTime = tempTime - backPressedTime;
+
+        if ( 0 <= intervalTime && FINSH_INTERVAL_TIME >= intervalTime ) {
+            super.onBackPressed();
+            finish();
+        }
+        else {
+            backPressedTime = tempTime;
+            Toast.makeText(getApplicationContext(),"'뒤로'버튼을 한번 더 누르면 종료됩니다.",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_tab, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_logout) {
+            //로그아웃버튼 클릭 시 자동로그인 정보 제거 후 메인액티비티로
+
+            SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
+            SharedPreferences.Editor editor = autoLogin.edit();
+            editor.clear();
+            editor.apply();
+
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            return POSITION_NONE;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            // getItem is called to instantiate the fragment for the given page.
+            // Return a PlaceholderFragment (defined as a static inner class below).
+            //return PlaceholderFragment.newInstance(position + 1);
+
+            switch (position) {
+                case 0:
+                    return new Fragment_Home();
+                case 1:
+                    return new Fragment_Friend();
+                case 2:
+                    return new Fragment_Chat();
+                case 3:
+                    return new Fragment_Profile();
+            }
+            return null;
+        }
+
+        @Override
+        public int getCount() {
+            return 4;
+        }
+
+    }
+
+    public void Set_On() {
+        String Online = "접속중";
+        databaseReference.child(currentUid).child("state").setValue(Online); //DB에서의 명시적 로그인 상태 세팅
+        //mAuth.signIn()은 메인액티비티에서 로그인되는 형태이기 때문에 메인액티비티에서 체크
+    }
+
+    public void Set_Off() {
+        String Offline = "접속종료";
+        databaseReference.child(currentUid).child("state").setValue(Offline); //DB에서의 명시적 로그아웃 상태 세팅.
+        mAuth.signOut(); //Firebase 유저 상태 모니터링 리스너를 이용한 암묵적 로그아웃상태 세팅.
+    }
+
+
+}

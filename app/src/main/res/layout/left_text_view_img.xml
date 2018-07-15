@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="40dp"
+    android:layout_marginStart="2dp"
+    android:layout_marginTop="10dp">
+
+
+    <TextView
+        android:id="@+id/my_chat_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bubble_yellow"
+        android:textSize="15sp"
+        android:layout_below="@+id/tvTime"
+        android:layout_toEndOf="@+id/ivUser"
+        android:visibility="gone"/>
+
+    <ImageView
+        android:id="@+id/my_chat_view_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bubble_yellow"
+        android:layout_toEndOf="@+id/ivUser"
+        android:layout_below="@+id/tvTime"
+        android:layout_above="@+id/my_chat_view"
+
+        />
+
+    <ImageView
+        android:id="@+id/ivUser"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/tvEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mail"
+        android:textSize="17sp"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/ivUser" />
+
+    <TextView
+        android:id="@+id/tvTime"
+        android:textSize="13sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time"
+        android:layout_below="@+id/tvEmail"
+        android:layout_toEndOf="@+id/ivUser" />
+
+    <VideoView
+        android:id="@+id/video"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/my_chat_view_img"
+        android:layout_alignEnd="@+id/my_chat_view_img"
+        android:layout_toEndOf="@+id/ivUser"
+        android:layout_below="@+id/tvTime" />
+
+    <ImageView
+        android:id="@+id/ic_video"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:visibility="gone"/>
+
+</RelativeLayout>

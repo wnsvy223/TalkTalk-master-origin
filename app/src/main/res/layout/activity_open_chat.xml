@@ -1,0 +1,82 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:id="@+id/chat_fragment"
+    tools:context="com.example.home.mytalk.Activity.OpenChatActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/ChatRoom"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/makeRoom" />
+
+
+    <Button
+        android:id="@+id/makeRoom"
+        android:background="@drawable/mainbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:text="채팅방만들기"
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="4dp"
+        android:textColor="#ffffff"
+        android:textSize="14sp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@+id/roomName"
+        android:layout_alignParentTop="true" />
+
+    <EditText
+        android:layout_marginTop="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@+id/makeRoom"
+        android:id="@+id/roomName"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:hint="채팅방 제목을 입력하세요(특수문자X)"
+        android:layout_alignParentTop="true" />
+
+
+
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/markText"
+        android:layout_marginTop="100dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true">
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="280dp"
+            android:text="채팅방을 만들어 채팅을 시작해보세요." />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="개설된 채팅방이 없습니다."
+            android:layout_marginTop="300dp"
+            android:layout_centerHorizontal="true" />
+
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="150dp"
+            android:background="@drawable/chaticon"
+            android:id="@+id/image"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="96dp" />
+    </RelativeLayout>
+
+</RelativeLayout>

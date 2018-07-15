@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.home.mytalk">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera2" />
+    <uses-permission android:name="android.hardware.camera.autofocus" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".Activity.SplashActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="TALKTALK">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+
+                <action android:name="com.example.home.mytalk_TARGET_NOTIFICATION" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Activity.MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name=".Activity.ChatActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="stateHidden|adjustResize">
+            <intent-filter>
+                <action android:name="com.example.home.mytalk_Message_NOTIFICATION" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Activity.RegisterActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="가  입" />
+        <activity
+            android:name=".Activity.WebActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="검색엔진/SNS" />
+        <activity
+            android:name=".Activity.SetActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="채팅배경설정" />
+        <!--
+             The API key for Google Maps-based APIs is defined as a string resource.
+             (See the file "res/values/google_maps_api.xml").
+             Note that the API key is linked to the encryption key used to sign the APK.
+             You need a different API key for each encryption key, including the release key that is used to
+             sign the APK for publishing.
+             You can define the keys for the debug and release targets in src/debug/ and src/release/.
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <activity
+            android:name=".Activity.MapActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_map" />
+
+        <service android:name=".Service.FirebaseMessageService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <service android:name=".Service.FirebaseInstanceIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <activity
+            android:name=".Activity.SearchFriendActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="친구 검색" />
+        <activity
+            android:name=".Activity.TabActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="홈"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
+            android:name=".Activity.OpenChatActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="공개 채팅방" />
+        <activity
+            android:name=".Activity.GroupChatActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="그룹채팅초대" />
+        <activity
+            android:name=".Activity.FullScreenActivity"
+            android:label="사진 메시지" />
+        <activity
+            android:name=".Activity.VideoViewActivity"
+            android:label="영상 메시지"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            />
+
+        <service
+            android:name=".Service.MyLocationService" />
+        <service
+            android:name=".Service.LogOutTaskService"
+            android:stopWithTask="false"/>
+        <service
+            android:name=".Service.UploadService"/>
+
+    </application>
+
+
+
+</manifest>

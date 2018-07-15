@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="2dp"
+    android:layout_marginTop="10dp">
+
+
+    <TextView
+        android:id="@+id/my_chat_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="300dp"
+        android:layout_below="@+id/tvEmail"
+        android:layout_toEndOf="@+id/ivUser"
+        android:background="@drawable/bubble_yellow"
+        android:textSize="15sp" />
+
+    <ImageView
+        android:id="@+id/my_chat_view_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bubble_yellow"
+        android:layout_toEndOf="@+id/ivUser"
+        android:layout_below="@+id/tvTime"
+        android:layout_above="@+id/my_chat_view"
+        android:visibility="gone"
+       />
+
+    <ImageView
+        android:id="@+id/ivUser"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/tvEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/ivUser"
+        android:textSize="17sp" />
+
+    <TextView
+        android:id="@+id/tvTime"
+        android:maxWidth="80dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/my_chat_view"
+        android:layout_toEndOf="@+id/my_chat_view"
+        android:gravity="center"
+        android:layout_marginBottom="8dp"
+        android:textSize="12sp" />
+
+    <VideoView
+        android:id="@+id/video"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/my_chat_view_img"
+        android:layout_alignEnd="@+id/my_chat_view_img"
+        android:layout_toEndOf="@+id/ivUser"
+        android:layout_below="@+id/tvTime" />
+
+    <ImageView
+        android:id="@+id/ic_video"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:visibility="gone" />
+
+</RelativeLayout>
