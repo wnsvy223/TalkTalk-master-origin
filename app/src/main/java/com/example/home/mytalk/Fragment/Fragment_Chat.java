@@ -184,6 +184,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
             @Override
             public ChatViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
                 mRecyclerView.getRecycledViewPool().setMaxRecycledViews(4,0); // 2번째 인자를 0으로 주어 뷰 생성시에 재사용방지
                 mRecyclerView.getRecycledViewPool().setMaxRecycledViews(0,0);
                 if(viewType == 4){ //4명 또는 그 이상
@@ -209,7 +210,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             }
 
             @Override
-            protected void populateViewHolder(final ChatViewHolder viewHolder, Chat chat, final int position) {
+            protected void populateViewHolder(final ChatViewHolder viewHolder, Chat chat, int position) {
                 if (viewHolder.getAdapterPosition() != RecyclerView.NO_POSITION) {
 
                     final String list_room_id = getRef(viewHolder.getAdapterPosition()).getKey();
@@ -480,19 +481,19 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         }
 
         public void setMessage(String message, String type){
-            TextView userStatusView = (TextView) mView.findViewById(R.id.user_last_message);
+            TextView messageView = (TextView) mView.findViewById(R.id.user_last_message);
             switch (type){
                 case "image":
-                    userStatusView.setText("(사진)");
+                    messageView.setText("(사진)");
                     break;
                 case "video":
-                    userStatusView.setText("(동영상)");
+                    messageView.setText("(동영상)");
                     break;
                 case "text":
-                    userStatusView.setText(message);
+                    messageView.setText(message);
                     break;
                 case "System":
-                    userStatusView.setText(message);
+                    messageView.setText(message);
                     break;
                 default:
             }
@@ -506,7 +507,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         public void setUserNum(String num){
             TextView userNum = (TextView)mView.findViewById(R.id.textUserNum);
             userNum.setText(num);
-            if(num.equals("2")){
+            if(num.equals("2") ){
                 userNum.setVisibility(View.INVISIBLE);
             }
         }
@@ -514,6 +515,8 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         public void setUserImage(String thumb_image, Context context) {
             if(context != null) {
                 CircleImageView userImageView = (CircleImageView) mView.findViewById(R.id.user_single_image);
+                Glide.clear(userImageView);
+                Glide.get(context).clearMemory();
                 if (TextUtils.isEmpty(thumb_image)) {
                     Glide.with(context)
                             .load(R.drawable.ic_unknown_user)
@@ -593,6 +596,15 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
                                 break;
                             case 560:
+                                if (arrayUserImage[0].getY() == 120) {
+                                    arrayUserImage[0].setTranslationY(53);
+                                }
+                                if (arrayUserImage[1].getY() == 120) {
+                                    arrayUserImage[1].setTranslationY(53);
+                                }
+                                arrayUserImage[2].setTranslationX(0);
+                                break;
+                            case 640:
                                 Log.d("뷰테스트", String.valueOf(arrayUserImage[0].getY()));
                                 if (arrayUserImage[0].getY() == 120) {
                                     arrayUserImage[0].setTranslationY(53);
@@ -673,6 +685,38 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                                     userStatusView.setTranslationX(-80);
                                 } //채팅방 유저 이미지뷰들을 인원수에 따라 동적으로 INVISIBLE처리 및 위치 이동
                                 break;
+                            case 640:
+                                if(count == 3) { //이미지뷰2개
+                                    Log.d("2개", String.valueOf(arrayUserImage[0].getY()));
+                                    arrayUserImage[0].getLayoutParams().height = 120;
+                                    arrayUserImage[0].getLayoutParams().width = 120;
+                                    arrayUserImage[1].getLayoutParams().height = 120;
+                                    arrayUserImage[1].getLayoutParams().width = 120;
+                                    arrayUserImage[0].setTranslationY(60);
+                                    arrayUserImage[1].setTranslationY(60);
+                                    userNameView.setTranslationX(-10);
+                                    userStatusView.setTranslationX(-10);
+                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
+                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
+                                }else if (count == 4) {//이미지뷰3개
+                                    Log.d("3개", String.valueOf(arrayUserImage[0].getY()));
+                                    arrayUserImage[0].setTranslationY(0);
+                                    arrayUserImage[1].setTranslationY(0);
+                                    arrayUserImage[2].setTranslationX(60);
+                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
+                                }else if(count == 2){ //이미지뷰1개
+                                    Log.d("1개", String.valueOf(arrayUserImage[0].getY()));
+                                    arrayUserImage[0].setTranslationX(5);
+                                    arrayUserImage[0].setTranslationY(5);
+                                    arrayUserImage[0].getLayoutParams().height = 220;
+                                    arrayUserImage[0].getLayoutParams().width = 220;
+                                    arrayUserImage[1].setVisibility(View.INVISIBLE);
+                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
+                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
+                                    userNameView.setTranslationX(-80);
+                                    userStatusView.setTranslationX(-80);
+                                } //채팅방 유저 이미지뷰들을 인원수에 따라 동적으로 INVISIBLE처리 및 위치 이동
+                                break;
                             default:
                         }
                     }
@@ -683,7 +727,11 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
         public void setTimeStamp(String time){
             TextView TimeStamp = (TextView) mView.findViewById(R.id.time_stamp);
-            TimeStamp.setText(time);
+            if(time.isEmpty()){
+                TimeStamp.setText("");
+            }else {
+                TimeStamp.setText(time);
+            }
         }
 
         public void setUserOnline(String online_status) {
@@ -712,6 +760,8 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             databaseReference.child(key).child("photo").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
+                    Glide.clear(arrayUserImage[i]);
+                    Glide.get(context).clearMemory();
                     String image = dataSnapshot.getValue().toString();
                     if(TextUtils.isEmpty(image)){
                         Glide.with(context)
@@ -738,7 +788,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
     }
 
-    private void setSystemMessage(String listRoom,String roomType,String myNode ){
+    private void setSystemMessage(String listRoom, String roomType, String myNode ){
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
         String formattedDate = simpleDateFormat.format(calendar.getTime());

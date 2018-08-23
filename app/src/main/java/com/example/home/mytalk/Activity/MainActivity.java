@@ -129,10 +129,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
-
                         if (!task.isSuccessful()) {
                             Log.w(TAG, "signInWithEmail:failed", task.getException());
                             Toast.makeText(MainActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
+
                             PBLogin.setVisibility(View.GONE);
                         } else {
                             if(checkBox.isChecked()) { //자동로그인 체크박스 체크되있으면 자동로그인 정보 저장

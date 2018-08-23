@@ -36,7 +36,6 @@
         android:maxWidth="180dp"
         android:ellipsize="end"
         android:textSize="13sp"
-        android:text="채팅방이 생성되었습니다."
         android:layout_gravity="bottom"
         android:layout_alignStart="@+id/user_group_name"
         android:layout_alignBottom="@+id/user_single_image" />

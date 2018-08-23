@@ -58,7 +58,6 @@
         android:id="@+id/user_last_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="채팅방이 생성되었습니다."
         android:maxLines="2"
         android:maxHeight="20dp"
         android:maxWidth="180dp"
