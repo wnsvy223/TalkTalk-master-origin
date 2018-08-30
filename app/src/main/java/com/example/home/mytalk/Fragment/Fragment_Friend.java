@@ -53,7 +53,7 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
     public FloatingActionMenu floatingActionMenu;
     private View view;
     public Intent intent;
-    public FriendAdapterExpandable friendAdapterExpandable;
+    public FriendAdapterExpandable friendAdapterExpandable; //확장 리사이클러뷰
     private List<FriendAdapterExpandable.Item> friendListData;
 
     @Override
