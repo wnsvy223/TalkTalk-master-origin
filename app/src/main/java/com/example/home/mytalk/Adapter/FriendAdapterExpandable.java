@@ -111,9 +111,9 @@ public class FriendAdapterExpandable extends RecyclerView.Adapter<RecyclerView.V
 
                 // 확장버튼
                 if (item.invisibleChildren == null) {
-                    listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.circle_minus);
+                    listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.ic_arrow_up);
                 } else {
-                    listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.circle_plus);
+                    listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.ic_arrow_down);
                 }
                 listHeaderViewHolder.btn_expand_toggle.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -127,7 +127,7 @@ public class FriendAdapterExpandable extends RecyclerView.Adapter<RecyclerView.V
                                 count++;
                             }
                             notifyItemRangeRemoved(pos + 1, count);
-                            listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.circle_plus);
+                            listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.ic_arrow_down);
                         } else {
                             int pos = data.indexOf(listHeaderViewHolder.refferalItem);
                             int index = pos + 1;
@@ -136,7 +136,7 @@ public class FriendAdapterExpandable extends RecyclerView.Adapter<RecyclerView.V
                                 index++;
                             }
                             notifyItemRangeInserted(pos + 1, index - pos - 1);
-                            listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.circle_minus);
+                            listHeaderViewHolder.btn_expand_toggle.setImageResource(R.drawable.ic_arrow_up);
                             item.invisibleChildren = null;
                         }
                     }
