@@ -1,14 +1,18 @@
 package com.example.home.mytalk.Service;
 
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.os.Build;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.example.home.mytalk.BuildConfig;
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Utils.RoundedTransformation;
 import com.google.firebase.database.DataSnapshot;
@@ -28,33 +32,16 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 
 public class FirebaseMessageService extends FirebaseMessagingService {
 
-/*
-    @Override
-    public void handleIntent(Intent intent) { // 앱이 포어그라운드,백그라운드,킬 상태 모두 푸시를 받기위해 handleIntent 이용해 3경우 모두 onMessageReceived가 호출됨.
-        super.handleIntent(intent);
-        try{
-            if(intent.getExtras() != null){
-                RemoteMessage.Builder builder = new RemoteMessage.Builder(".FirebaseService.FirebaseMessageService");
-                for(String key : intent.getExtras().keySet()){
-                    builder.addData(key, intent.getExtras().get(key).toString());
-                }
-                onMessageReceived(builder.build());
-
-
-                ShortcutBadger.applyCount(getApplicationContext(),count); //푸시메시지 날아오면 홈 화면 아이콘에 카운트값 넣어 배지생성.
-
-            }else {
-                super.handleIntent(intent);
-            }
-        }catch (Exception e){
-            super.handleIntent(intent);
-        }
-    }
-*/
-
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE );
+        PowerManager.WakeLock wakeLock = pm.newWakeLock( PowerManager.PARTIAL_WAKE_LOCK
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG" );
+        wakeLock.acquire(3000);
+        // PARTIAL_WAKE_LOCK : 화면을 깨우지 않고 잠금화면에 푸시 알림 표시 및 진동&소리 제공
+        // SCREEN_DIM_WAKE_LOCK (deprecated ) : 화면을 깨우고 푸시 알림 표시 및 진동&소리 제공
 
         SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
         String currentUid = sharedPreferences.getString("uid", "");
@@ -116,27 +103,27 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             String group_room_name = remoteMessage.getData().get("groom");
             //그룹 채팅 메시지 푸시 데이터
 
+            if (tag != null) {
+                switch (tag) {
+                    case "contact":
+                        setNotification(Photo, Title, Body, click_action, from_user_id);
+                        break;
 
-            switch (tag){
+                    case "one":
+                        //setNotification(userPhotoImage, name, message, click_action_message, one_room_name)
+                        if (!token.equals(tokenSender)) { //메시지 보낸사람 기기는 푸시X
+                            setNotification(userPhotoImage, name, message, click_action_message, one_room_name);
+                        }
+                        break;
 
-                case "contact":
-                    setNotification(Photo, Title, Body, click_action, from_user_id);
-                    break;
-
-                case "one":
-                    //setNotification(userPhotoImage, name, message, click_action_message, one_room_name)
-                    if(!token.equals(tokenSender)) { //메시지 보낸사람 기기는 푸시X
-                        setNotification(userPhotoImage, name, message, click_action_message, one_room_name);
-                     }
-                    break;
-
-                case "group":
-                    //setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
-                    if(!group_token.equals(sender_token)) { //메시지 보낸사람 기기는 푸시X
-                        setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
-                    }
-                    break;
-                default:
+                    case "group":
+                        //setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
+                        if (!group_token.equals(sender_token)) { //메시지 보낸사람 기기는 푸시X
+                            setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
+                        }
+                        break;
+                    default:
+                }
             }
         }
 
@@ -171,6 +158,7 @@ public class FirebaseMessageService extends FirebaseMessagingService {
         }else{
             Body = body;
         }
+
 
         NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(R.mipmap.ic_launcher)

@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.home.mytalk.Activity.SearchFriendActivity;
+import com.example.home.mytalk.Adapter.FriendAdapterExpandable;
 import com.example.home.mytalk.Adapter.FriendAdapter;
 import com.example.home.mytalk.Model.Friend;
 import com.example.home.mytalk.R;
@@ -52,7 +53,8 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
     public FloatingActionMenu floatingActionMenu;
     private View view;
     public Intent intent;
-    public Fragment_Friend(){}
+    public FriendAdapterExpandable friendAdapterExpandable;
+    private List<FriendAdapterExpandable.Item> friendListData;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -67,8 +69,12 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
 
         rootLayout = (CoordinatorLayout)view.findViewById(R.id.coordinatorLayout);
         mFriend = new ArrayList<>();    //새 리스트 만들고
-        mAdapter = new FriendAdapter(mFriend , getActivity());  // 리스트에 나타낼 재료들 준비하고 어댑터 객체생성후
-        mRecyclerView.setAdapter(mAdapter);   //어댑터 연결
+
+        //mAdapter = new FriendAdapter(mFriend , getActivity());  // 리스트에 나타낼 재료들 준비하고 어댑터 객체생성후
+        //mRecyclerView.setAdapter(mAdapter);   //어댑터 연결
+        friendListData = new ArrayList<>();
+        friendAdapterExpandable = new FriendAdapterExpandable(friendListData, getContext());
+        mRecyclerView.setAdapter(friendAdapterExpandable);
 
         floatingActionMenu = (FloatingActionMenu)view.findViewById(R.id.action_menu);
         floatingActionMenu.addOnMenuItemClickListener(new OnMenuItemClickListener() {
@@ -165,16 +171,22 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
         UserDataRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mFriend.clear();
+                //mFriend.clear();
+                friendListData.clear();
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Friend friend = postSnapshot.getValue(Friend.class);
                     String key = friend.getKey();
                     if(!TextUtils.isEmpty(key) && contact.contains(key)){ //NPE 체크는 TextUtils 로 해야 객체(Null), 문자열(isEmpty) 모두 한꺼번에 체크.
-                        mFriend.add(friend);
+                        //mFriend.add(friend)
+                        FriendAdapterExpandable.Item friendData = new FriendAdapterExpandable.Item(FriendAdapterExpandable.HEADER,  friend.getName(),friend.getPhoto(),friend.getState(),null,null,friend.getKey());
+                        friendData.invisibleChildren = new ArrayList<>();
+                        friendData.invisibleChildren.add(new FriendAdapterExpandable.Item(FriendAdapterExpandable.CHILD, null,null,null,friend.getLatitude(), friend.getLongitude(),friend.getKey()));
+                        Fragment_Friend.this.friendListData.add(friendData);
                         if(key.equals(userID)){
-                            mFriend.remove(friend);
+                            //mFriend.remove(friend);
                         }
-                        mAdapter.notifyDataSetChanged();
+                        //mAdapter.notifyDataSetChanged();
+                        friendAdapterExpandable.notifyDataSetChanged();
                     }
                 }
             }
@@ -184,6 +196,7 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
             }
         });
     }
+
 
     @Override
     public void onStart() {

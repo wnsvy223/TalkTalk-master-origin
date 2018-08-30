@@ -250,6 +250,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                             String time = chat.getTime();
                             viewHolder.setMessage(text, type);
                             viewHolder.setTimeStamp(time);
+
                         }
 
                         @Override
@@ -284,6 +285,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                             String time = chat.getTime();
                             viewHolder.setMessage(text, type);
                             viewHolder.setTimeStamp(time);
+
                         }
 
                         @Override
