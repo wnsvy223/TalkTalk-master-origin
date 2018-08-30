@@ -181,7 +181,7 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
                         FriendAdapterExpandable.Item friendData = new FriendAdapterExpandable.Item(FriendAdapterExpandable.HEADER,  friend.getName(),friend.getPhoto(),friend.getState(),null,null,friend.getKey());
                         friendData.invisibleChildren = new ArrayList<>();
                         friendData.invisibleChildren.add(new FriendAdapterExpandable.Item(FriendAdapterExpandable.CHILD, null,null,null,friend.getLatitude(), friend.getLongitude(),friend.getKey()));
-                        Fragment_Friend.this.friendListData.add(friendData);
+                        friendListData.add(friendData);
                         if(key.equals(userID)){
                             //mFriend.remove(friend);
                         }
