@@ -48,10 +48,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.w9jds.FloatingActionMenu;
-import com.w9jds.floatingactionmenu.OnMenuItemClickListener;
-import com.w9jds.floatingactionmenu.OnMenuToggleListener;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -62,9 +58,6 @@ import java.util.Locale;
 import de.hdodenhof.circleimageview.CircleImageView;
 import me.leolin.shortcutbadger.ShortcutBadger;
 import static android.content.Context.MODE_PRIVATE;
-
-
-
 
 public class Fragment_Chat extends android.support.v4.app.Fragment {
 

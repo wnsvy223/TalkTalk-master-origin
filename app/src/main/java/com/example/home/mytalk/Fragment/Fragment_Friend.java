@@ -25,13 +25,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.w9jds.FloatingActionMenu;
-import com.w9jds.floatingactionmenu.OnMenuItemClickListener;
-import com.w9jds.floatingactionmenu.OnMenuToggleListener;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static android.content.Context.MODE_PRIVATE;
 
 

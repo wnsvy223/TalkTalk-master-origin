@@ -99,11 +99,9 @@ public class TabActivity extends AppCompatActivity{
         };
 
         fab = (com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab);
-        fab.setVisibility(View.GONE);
         fab_child_one =(com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab_1);
-        fab_child_one.setVisibility(View.GONE);
         fab_child_two =(com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab_2);
-        fab_child_two.setVisibility(View.GONE);
+        setGoneFab();
 
         coordinatorLayout = (CoordinatorLayout)findViewById(R.id.main_content);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
