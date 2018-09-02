@@ -42,9 +42,7 @@ import java.util.Locale;
 import static android.content.ContentValues.TAG;
 import static android.content.Context.MODE_PRIVATE;
 
-/**
- * Created by anandbose on 09/06/15.
- */
+
 public class FriendAdapterExpandable extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static final int HEADER = 0;
     public static final int CHILD = 1;

@@ -26,4 +26,9 @@
     <dimen name="img_thumb_large">100dp</dimen>
     <dimen name="footer">64dp</dimen>
 
+    <!-- fab -->
+    <dimen name="dp55">55dp</dimen>
+    <dimen name="dp105">105dp</dimen>
+    <dimen name="dp155">155dp</dimen>
+
 </resources>

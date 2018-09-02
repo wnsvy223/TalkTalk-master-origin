@@ -4,21 +4,33 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.drm.DrmStore;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
+import android.view.animation.OvershootInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -38,7 +50,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rahimlis.badgedtablayout.BadgedTabLayout;
 
-import java.util.List;
 
 public class TabActivity extends AppCompatActivity{
 
@@ -55,7 +66,13 @@ public class TabActivity extends AppCompatActivity{
     public String currentUid;
     public static Context mContext;
     public BadgedTabLayout tabLayout;
-
+    public CoordinatorLayout coordinatorLayout;
+    public com.melnykov.fab.FloatingActionButton fab;
+    public com.melnykov.fab.FloatingActionButton fab_child_one;
+    public com.melnykov.fab.FloatingActionButton fab_child_two;
+    public Intent intent;
+    private AppBarLayout appBarLayout;
+    private boolean isFabOpen =false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +86,7 @@ public class TabActivity extends AppCompatActivity{
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("email",MODE_PRIVATE );
+        final SharedPreferences sharedPreferences = getSharedPreferences("email",MODE_PRIVATE );
         currentUid = sharedPreferences.getString("uid", "");
 
         databaseReference =  FirebaseDatabase.getInstance().getReference("users");
@@ -81,6 +98,14 @@ public class TabActivity extends AppCompatActivity{
             }
         };
 
+        fab = (com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab);
+        fab.setVisibility(View.GONE);
+        fab_child_one =(com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab_1);
+        fab_child_one.setVisibility(View.GONE);
+        fab_child_two =(com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab_2);
+        fab_child_two.setVisibility(View.GONE);
+
+        coordinatorLayout = (CoordinatorLayout)findViewById(R.id.main_content);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -92,25 +117,50 @@ public class TabActivity extends AppCompatActivity{
         tabLayout.setIcon(2, R.drawable.chat);
         tabLayout.setIcon(3, R.drawable.user_profile_edit2);
 
+
+        appBarLayout = (AppBarLayout)findViewById(R.id.appbar);
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                // verticalOffset 이 음수일때는 toolbar가 접힌 상태값 -> 스크롤업하여 toolbar를 접었을 경우 플로팅액션 버튼 안보이게
+                if(verticalOffset< 0 && !toolbar.getTitle().equals("홈")){
+                    fab.hide();
+                    fab_child_one.hide();
+                    fab_child_two.hide();
+                }else{
+                    fab.show();
+                    fab_child_one.show();
+                    fab_child_two.show();
+                }
+            }
+        });
+
+
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+
                 switch (tab.getPosition()){
                     case 0:
                         toolbar.setTitle("홈");
+                        setGoneFab();
                         break;
                     case 1:
                         toolbar.setTitle("친구");
+                        setVisibleFab(1);
                         break;
                     case 2:
                         toolbar.setTitle("채팅");
+                        setVisibleFab(2);
                         break;
                     case 3:
                         toolbar.setTitle("프로필");
+                        setGoneFab();
                         break;
                     default:
                 }
+                fabShowHide(tab.getPosition());
             }
 
             @Override
@@ -286,5 +336,109 @@ public class TabActivity extends AppCompatActivity{
         mAuth.signOut(); //Firebase 유저 상태 모니터링 리스너를 이용한 암묵적 로그아웃상태 세팅.
     }
 
+    private void fabShowHide(int position){
+        if(position == 1 || position == 2){
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if(!isFabOpen){
+                        showFabMenu();
+                        rotateFabForward();
+                    }else{
+                        hideFabMenu();
+                        rotateFabBackward();
+                    }
+                }
+            });
+        }
+    }
+
+    public void rotateFabForward() {
+        ViewCompat.animate(fab)
+                .rotation(45.0F)
+                .withLayer()
+                .setDuration(300)
+                .setInterpolator(new OvershootInterpolator())
+                .start();
+    }
+
+    public void rotateFabBackward() {
+        ViewCompat.animate(fab)
+                .rotation(0.0F)
+                .withLayer()
+                .setDuration(300)
+                .setInterpolator(new OvershootInterpolator())
+                .start();
+    }
+
+    public void showFabMenu(){
+        isFabOpen=true;
+        fab_child_one.animate().translationY(-getResources().getDimension(R.dimen.dp55));
+        fab_child_two.animate().translationY(-getResources().getDimension(R.dimen.dp105));
+    }
+
+    public void hideFabMenu(){
+        isFabOpen=false;
+        fab_child_one.animate().translationY(0);
+        fab_child_two.animate().translationY(0);
+    }
+
+    public void setVisibleFab(int position){
+        fab.setVisibility(View.VISIBLE);
+        fab_child_one.setVisibility(View.VISIBLE);
+        fab_child_two.setVisibility(View.VISIBLE);
+        switch (position){
+            case 1:
+                fab_child_one.setImageDrawable(getResources().getDrawable(R.drawable.ic_email ,null));
+                fab_child_one.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        intent = new Intent(getApplicationContext(), SearchFriendActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.putExtra("searchType", "email");
+                        startActivity(intent);
+                    }
+                });
+                fab_child_two.setImageDrawable(getResources().getDrawable(R.drawable.user_add_icon ,null));
+                fab_child_two.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        intent = new Intent(getApplicationContext(), SearchFriendActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.putExtra("searchType", "name");
+                        startActivity(intent);
+                    }
+                });
+                break;
+            case 2:
+                fab_child_one.setImageDrawable(getResources().getDrawable(R.drawable.ic_group ,null));
+                fab_child_one.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        intent = new Intent(getApplicationContext(), GroupChatActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
+                });
+                fab_child_two.setImageDrawable(getResources().getDrawable(R.drawable.ic_openchat_1 ,null));
+                fab_child_two.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        intent = new Intent(getApplicationContext(), OpenChatActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
+                });
+                break;
+            default:
+        }
+    }
+
+    public void setGoneFab(){
+        fab.setVisibility(View.GONE);
+        fab_child_one.setVisibility(View.GONE);
+        fab_child_two.setVisibility(View.GONE);
+    }
 
 }

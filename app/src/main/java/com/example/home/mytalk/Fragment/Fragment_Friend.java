@@ -1,8 +1,10 @@
 package com.example.home.mytalk.Fragment;
 
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -13,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.example.home.mytalk.Activity.SearchFriendActivity;
 import com.example.home.mytalk.Adapter.FriendAdapterExpandable;
 import com.example.home.mytalk.Adapter.FriendAdapter;
@@ -36,7 +37,6 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class Fragment_Friend extends  android.support.v4.app.Fragment {
 
-
     private static final String TAG = "FriendFragment";
     public RecyclerView mRecyclerView;
     public LinearLayoutManager mLayoutManager;
@@ -50,11 +50,11 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
     private DatabaseReference rootRef;
     private DatabaseReference FriendRef;
     private DatabaseReference UserDataRef;
-    public FloatingActionMenu floatingActionMenu;
     private View view;
     public Intent intent;
     public FriendAdapterExpandable friendAdapterExpandable; //확장 리사이클러뷰
     private List<FriendAdapterExpandable.Item> friendListData;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -76,44 +76,6 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
         friendAdapterExpandable = new FriendAdapterExpandable(friendListData, getContext());
         mRecyclerView.setAdapter(friendAdapterExpandable);
 
-        floatingActionMenu = (FloatingActionMenu)view.findViewById(R.id.action_menu);
-        floatingActionMenu.addOnMenuItemClickListener(new OnMenuItemClickListener() {
-            @Override
-            public void onMenuItemClick(FloatingActionMenu floatingActionMenu, int i, FloatingActionButton floatingActionButton) {
-                switch (floatingActionButton.getId()) {
-                    case R.id.searchEmail:
-                        intent = new Intent(getActivity(), SearchFriendActivity.class);
-                        intent.putExtra("searchType", "email");
-                        startActivity(intent);
-                        break;
-                    case R.id.searchName:
-                        intent = new Intent(getActivity(), SearchFriendActivity.class);
-                        intent.putExtra("searchType", "name");
-                        startActivity(intent);
-                        break;
-                    default:
-                }
-            }
-        });
-
-        floatingActionMenu.addOnMenuToggleListner(new OnMenuToggleListener() {
-            @Override
-            public void onMenuToggle(boolean opened) {
-
-            }
-        });
-
-        mRecyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == MotionEvent.ACTION_MOVE){  // 화면터치 감지해서 움직이면 버튼 숨김
-                    floatingActionMenu.setVisibility(View.INVISIBLE);
-                }else {
-                    floatingActionMenu.setVisibility(View.VISIBLE);
-                }
-                return false;
-            }
-        });
 
         return view;
     }
@@ -127,10 +89,10 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                // Log.d(TAG,"루트 자식 AddFriend 참조값 : "+ dataSnapshot.child("AddFriend").getValue());
-                String U = userID;
+                String currentUser = userID;
                 if(dataSnapshot.hasChildren()) {
-                    String U2 = dataSnapshot.getValue().toString();
-                    if (U2.contains(U)) {
+                    String user = dataSnapshot.getValue().toString();
+                    if (user.contains(currentUser)) {
                         getFriebaseAddUserReference();
                     }
                 }

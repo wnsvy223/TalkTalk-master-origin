@@ -84,7 +84,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
     public String currentPhoto;
     private String NodeUid;
     public Intent intent;
-    public FloatingActionMenu floatingActionMenu;
     public ActivityManager activityManager;
     public int type;
     private FirebaseRecyclerAdapter<Chat,ChatViewHolder> firebaseConvAdapter;
@@ -96,7 +95,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         mRecyclerView = (RecyclerView)view.findViewById(R.id.ChatRoom);
 
-
         //mRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mLayoutManager.setReverseLayout(true);
@@ -104,48 +102,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         //Firebase RealTimeDatabase에는 내림차순 정렬이 없음. 그래서 위 함수2줄로 레이아웃에서 역순정렬 설정.
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-
-        floatingActionMenu = (FloatingActionMenu)view.findViewById(R.id.action_menu);
-        floatingActionMenu.addOnMenuItemClickListener(new OnMenuItemClickListener() {
-            @Override
-            public void onMenuItemClick(FloatingActionMenu floatingActionMenu, int i, FloatingActionButton floatingActionButton) {
-                switch (floatingActionButton.getId()) {
-                    case R.id.open:
-                        intent = new Intent(getActivity(), OpenChatActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.group:
-                        intent = new Intent(getActivity(), GroupChatActivity.class);
-                        startActivity(intent);
-                        break;
-                    case R.id.secret:
-                        //intent = new Intent(getActivity(), SecretChatActivity.class);
-                        //startActivity(intent);
-                        break;
-                    default:
-                }
-            }
-        });
-
-        floatingActionMenu.addOnMenuToggleListner(new OnMenuToggleListener() {
-            @Override
-            public void onMenuToggle(boolean opened) {
-
-            }
-        });
-
-        mRecyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == MotionEvent.ACTION_MOVE){  // 화면터치 감지해서 움직이면 버튼 숨김
-                    floatingActionMenu.setVisibility(View.INVISIBLE);
-
-                }else {
-                    floatingActionMenu.setVisibility(View.VISIBLE);
-                }
-                return false;
-            }
-        });
 
         metrics = new DisplayMetrics();
         WindowManager mgr = (WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE);

@@ -14,42 +14,5 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true" />
 
-    <com.w9jds.FloatingActionMenu
-        android:id="@+id/action_menu"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:base_src="@drawable/ic_add_black_24dp"
-        app:base_background="@color/fabPrimary"
-        app:base_marginEnd="20dp"
-        app:base_marginBottom="90dp"
-        app:overlay_color="#66000000"
-        app:item_spacing="16dp"
-        app:label_marginEnd="8dp">
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/open"
-            app:backgroundTint="@color/fabPressed"
-            android:src="@drawable/ic_openchat_1"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:contentDescription="공개채팅" />
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/group"
-            app:backgroundTint="@color/fabPressed"
-            android:src="@drawable/ic_group"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:contentDescription="그룹채팅" />
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/secret"
-            app:backgroundTint="@color/fabPressed"
-            android:src="@drawable/ic_secret"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:contentDescription="비밀채팅" />
-
-    </com.w9jds.FloatingActionMenu>
 
 </android.support.design.widget.CoordinatorLayout>

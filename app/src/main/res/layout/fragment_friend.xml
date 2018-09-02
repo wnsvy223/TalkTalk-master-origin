@@ -14,36 +14,4 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-
-    <com.w9jds.FloatingActionMenu
-        android:id="@+id/action_menu"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:base_src="@drawable/ic_add_black_24dp"
-        app:base_background="@color/fabPrimary"
-        app:base_marginEnd="20dp"
-        app:base_marginBottom="90dp"
-        app:overlay_color="#66000000"
-        app:item_spacing="16dp"
-        app:label_marginEnd="8dp">
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/searchEmail"
-            app:backgroundTint="@color/fabPressed"
-            android:src="@drawable/ic_email"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:contentDescription="이메일로 검색" />
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/searchName"
-            app:backgroundTint="@color/fabPressed"
-            android:src="@drawable/user_add_icon"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:contentDescription="이름으로 검색" />
-
-    </com.w9jds.FloatingActionMenu>
-
-
 </android.support.design.widget.CoordinatorLayout>
