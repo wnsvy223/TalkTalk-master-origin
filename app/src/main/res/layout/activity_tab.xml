@@ -105,8 +105,7 @@
         android:layout_height="match_parent"
         android:id="@+id/overlay"
         android:background="#000000"
-        android:alpha="0.5"
-        android:descendantFocusability="blocksDescendants">
+        android:alpha="0.5">
     </FrameLayout>
 
 </android.support.design.widget.CoordinatorLayout>
