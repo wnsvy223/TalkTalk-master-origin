@@ -1,5 +1,6 @@
 package com.example.home.mytalk.Activity;
 
+import android.animation.Animator;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +10,9 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -28,11 +31,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.TranslateAnimation;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.home.mytalk.Fragment.Fragment_Chat;
@@ -49,6 +55,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.rahimlis.badgedtablayout.BadgedTabLayout;
+
+import javax.xml.datatype.Duration;
 
 
 public class TabActivity extends AppCompatActivity{
@@ -73,7 +81,11 @@ public class TabActivity extends AppCompatActivity{
     public Intent intent;
     private AppBarLayout appBarLayout;
     private boolean isFabOpen =false;
+    public TextView fab_text_1;
+    public TextView fab_text_2;
+    public FrameLayout overlay;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,9 +113,10 @@ public class TabActivity extends AppCompatActivity{
         fab = (com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab);
         fab_child_one =(com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab_1);
         fab_child_two =(com.melnykov.fab.FloatingActionButton)findViewById(R.id.fab_2);
+        fab_text_1 =(TextView)findViewById(R.id.fab_text_1);
+        fab_text_2 =(TextView)findViewById(R.id.fab_text_2);
         setGoneFab();
 
-        coordinatorLayout = (CoordinatorLayout)findViewById(R.id.main_content);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -114,6 +127,20 @@ public class TabActivity extends AppCompatActivity{
         tabLayout.setIcon(1, R.drawable.friend);
         tabLayout.setIcon(2, R.drawable.chat);
         tabLayout.setIcon(3, R.drawable.user_profile_edit2);
+
+        overlay =(FrameLayout)findViewById(R.id.overlay);
+        overlay.setVisibility(View.GONE);
+        overlay.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                hideFabMenu();
+                rotateFabBackward();
+                appBarLayout.setEnabled(true);
+                overlay.setVisibility(View.GONE);
+                overlay.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+                return true;
+            }
+        });
 
 
         appBarLayout = (AppBarLayout)findViewById(R.id.appbar);
@@ -339,11 +366,16 @@ public class TabActivity extends AppCompatActivity{
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
                     if(!isFabOpen){
+                        overlay.setVisibility(View.VISIBLE);
+                        overlay.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+                        appBarLayout.setEnabled(false);
                         showFabMenu();
                         rotateFabForward();
                     }else{
+                        overlay.setVisibility(View.GONE);
+                        overlay.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+                        appBarLayout.setEnabled(true);
                         hideFabMenu();
                         rotateFabBackward();
                     }
@@ -372,14 +404,53 @@ public class TabActivity extends AppCompatActivity{
 
     public void showFabMenu(){
         isFabOpen=true;
+        fab_text_1.setVisibility(View.VISIBLE);
+        fab_text_2.setVisibility(View.VISIBLE);
+        fab_text_1.bringToFront();
+        fab_text_2.bringToFront(); //텍스트뷰를 오버레이보다 앞으로 끌어냄(fab는 원래 오버레이보다 앞쪽이라 필요X)
+        fabTextsAni(fab_text_1,1);
+        fabTextsAni(fab_text_2,1);
+        fab_text_1.animate().translationY(-getResources().getDimension(R.dimen.dp55));
+        fab_text_2.animate().translationY(-getResources().getDimension(R.dimen.dp105));
         fab_child_one.animate().translationY(-getResources().getDimension(R.dimen.dp55));
         fab_child_two.animate().translationY(-getResources().getDimension(R.dimen.dp105));
     }
 
     public void hideFabMenu(){
         isFabOpen=false;
+        fabTextsAni(fab_text_1,0);
+        fabTextsAni(fab_text_2,0);
         fab_child_one.animate().translationY(0);
         fab_child_two.animate().translationY(0);
+    }
+
+    public void fabTextsAni(final TextView textView, final float i){
+        textView.animate().setDuration(300);
+        textView.animate().translationY(i).setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if(i == 0) {
+                    textView.animate().alpha(0);
+                }else{
+                    textView.animate().alpha(1);
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
     }
 
     public void setVisibleFab(int position){
@@ -388,7 +459,9 @@ public class TabActivity extends AppCompatActivity{
         fab_child_two.setVisibility(View.VISIBLE);
         switch (position){
             case 1:
-                fab_child_one.setImageDrawable(getResources().getDrawable(R.drawable.ic_email ,null));
+                fab_text_1.setText("이메일로 검색");
+                fab_text_2.setText("이름으로 검색");
+                fab_child_one.setImageDrawable(getResources().getDrawable(R.drawable.ic_email_black_24dp ,null));
                 fab_child_one.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -398,7 +471,7 @@ public class TabActivity extends AppCompatActivity{
                         startActivity(intent);
                     }
                 });
-                fab_child_two.setImageDrawable(getResources().getDrawable(R.drawable.user_add_icon ,null));
+                fab_child_two.setImageDrawable(getResources().getDrawable(R.drawable.ic_person_add_black_24dp ,null));
                 fab_child_two.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -410,7 +483,9 @@ public class TabActivity extends AppCompatActivity{
                 });
                 break;
             case 2:
-                fab_child_one.setImageDrawable(getResources().getDrawable(R.drawable.ic_group ,null));
+                fab_text_1.setText("그룹채팅");
+                fab_text_2.setText("오픈채팅");
+                fab_child_one.setImageDrawable(getResources().getDrawable(R.drawable.ic_group_black_24dp,null));
                 fab_child_one.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -419,7 +494,7 @@ public class TabActivity extends AppCompatActivity{
                         startActivity(intent);
                     }
                 });
-                fab_child_two.setImageDrawable(getResources().getDrawable(R.drawable.ic_openchat_1 ,null));
+                fab_child_two.setImageDrawable(getResources().getDrawable(R.drawable.ic_chat_bubble_black_24dp ,null));
                 fab_child_two.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -437,6 +512,8 @@ public class TabActivity extends AppCompatActivity{
         fab.setVisibility(View.GONE);
         fab_child_one.setVisibility(View.GONE);
         fab_child_two.setVisibility(View.GONE);
+        fab_text_1.setVisibility(View.GONE);
+        fab_text_2.setVisibility(View.GONE);
     }
 
 }

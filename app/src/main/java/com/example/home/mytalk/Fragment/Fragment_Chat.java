@@ -35,8 +35,6 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.example.home.mytalk.Activity.ChatActivity;
-import com.example.home.mytalk.Activity.GroupChatActivity;
-import com.example.home.mytalk.Activity.OpenChatActivity;
 import com.example.home.mytalk.Model.Chat;
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Utils.CircleTransform;
