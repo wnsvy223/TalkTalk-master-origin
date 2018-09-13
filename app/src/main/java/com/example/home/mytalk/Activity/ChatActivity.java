@@ -340,8 +340,7 @@ public class ChatActivity extends AppCompatActivity {
                 }
                 mChat.addAll(0,mLoadMoreChat); //addAll 인덱스0으로 주면 앞에 추가..
                 mChatAdapter.notifyDataSetChanged();
-                mRecyclerView.scrollToPosition(mLoadMoreChat.size());
-                //추가 로딩됨과 동시에 화면에 표시되는 목록 위치는 추가된 목록의 맨아래 위치로
+                mRecyclerView.scrollToPosition(mLoadMoreChat.size());//추가 로딩됨과 동시에 화면에 표시되는 목록 위치는 추가된 목록의 맨아래 위치로
                 mLoadMoreChat.clear(); //사용된 추가목록 리스트는 초기 리스트에 추가한 후 다음 목록 추가를 위해 비움.
             }
 
