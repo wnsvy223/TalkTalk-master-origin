@@ -1,24 +1,20 @@
 package com.example.home.mytalk.Activity;
 
 import android.annotation.TargetApi;
-import android.app.ActivityManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.location.LocationManager;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.util.AsyncListUtil;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -50,25 +46,19 @@ import com.example.home.mytalk.Model.Friend;
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Service.MyLocationService;
 import com.example.home.mytalk.Service.UploadService;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnPausedListener;
-import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -85,8 +75,9 @@ public class ChatActivity extends AppCompatActivity {
     public ImageView imageView_back;
     public RecyclerView mRecyclerView;
     public ChatAdapter mChatAdapter;
-    public RecyclerView.LayoutManager mLayoutManager;
+    public LinearLayoutManager mLayoutManager;
     public List<Chat> mChat;
+    private List<Chat> mLoadMoreChat;
     private FirebaseDatabase database;
     private String currentEmail;
     private String currentUid;
@@ -114,6 +105,9 @@ public class ChatActivity extends AppCompatActivity {
     public ActionBar actionBar;
     public Switch locationSwitch;
     private SharedPreferences locationSwitchPref;
+    private int firstVisibleItem, totalItemCount;
+    private List<String> keyList = new ArrayList<>();
+
 
 
     @Override
@@ -168,7 +162,6 @@ public class ChatActivity extends AppCompatActivity {
         }else{
             locationSwitch.setChecked(false);
         } //쉐어드프레퍼런스에 저장된 bool값에 의해 위치정보제공자가 켜져있으면 체크된상태, 켜져있지않으면 체크안된상태로 생성.
-
 
         getCurrentValue(); // 채팅방 유저 이름, 사진 참조값
         goSendFile(); // 사진, 동영상 전송을 위해 각 버튼 활성화 함수
@@ -246,15 +239,16 @@ public class ChatActivity extends AppCompatActivity {
                 ChatDisplayReference = database.getReference("oneToOneMessage").child(currentUid).child(FriendChatUid); // 1:1 메시지 참조
             }
         }
-        ChatDisplayReference.addChildEventListener(new ChildEventListener() {
 
+
+        ChatDisplayReference.limitToLast(10).addChildEventListener(new ChildEventListener() {
+            //최근채팅10개 조회
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Chat chat = dataSnapshot.getValue(Chat.class);
                 mChat.add(chat);
                 mRecyclerView.scrollToPosition(mChat.size() - 1);
-                //mRecyclerView.smoothScrollToPosition(mChat.size() - 1);
-                mChatAdapter.notifyItemInserted(mChat.size());
+                mChatAdapter.notifyItemInserted(mChat.size() - 1);
             }
 
             @Override
@@ -278,11 +272,87 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        mChat = new ArrayList<>();
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                totalItemCount = mLayoutManager.getItemCount(); //화면에 보이는 채팅목록 갯수
+                firstVisibleItem = mLayoutManager.findFirstCompletelyVisibleItemPosition(); //화면에 보이는 채팅목록 맨 윗 포지션(=0)
+                if(mRecyclerView.getVerticalScrollbarPosition() == firstVisibleItem){
+
+                    //메시지 추가 로딩
+                    ChatDisplayReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            keyList.clear();
+                            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                                String key = postSnapshot.getKey();
+                                keyList.add(0, key); //채팅목록의 전체 키-노드값이 들어가있음 (인덱스0으로 주면 역순으로 추가)
+                            }
+
+                            int topPosition = totalItemCount + 9; //새로 추가될 목록의 탑 포지션은 화면에 표시된 메시지갯수 + 9
+                            if (topPosition <= keyList.size()) {
+                                //채팅전체목록값보다 작을경우(= 아직 로딩될 채팅이 남은 경우)
+                                String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 마지막 채팅노드 키값
+                                String topKey = keyList.get(topPosition); //현재 화면의 맨 위 채팅노드 키값
+                                loadMoreMessage(ChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
+                            }else if((keyList.size()) != totalItemCount && ( keyList.size() - topPosition) <= 9){
+                                //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
+                                int lastTopPosition = topPosition + ((keyList.size()-1) - topPosition); //추가되는 메시지목록수 =  남은 채팅목록수
+                                String lastBottomKey = keyList.get(totalItemCount);
+                                String lastTopKey = keyList.get(lastTopPosition);
+                                loadMoreMessage(ChatDisplayReference, lastBottomKey, lastTopKey);
+                            }else{
+                                //모두 로딩된 경우
+                                Toast.makeText(getApplicationContext(),"더 이상 대화 내용이 없습니다.",Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                }
+            }
+        });
+
+        mChat = new ArrayList<>(); //초기 화면 채팅 목록
+        mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
         mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext);
         mRecyclerView.setAdapter(mChatAdapter);
+    }
+
+
+    private void loadMoreMessage(DatabaseReference databaseReference, String last, String first){
+        //채팅노드 키값으로 정렬하여 인자값으로 받은 시작점, 끝점노드의 키값데이터만 가져와서 리스트에 추가 후
+        //초기 채팅리스트에 추가로딩 채팅리스트 추가
+        //역순으로 조회하기 때문에 최근채팅값 = 마지막데이터값
+
+        databaseReference.orderByKey().startAt(first).endAt(last).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Chat chat = postSnapshot.getValue(Chat.class);
+                    mLoadMoreChat.add(chat);
+                }
+                mChat.addAll(0,mLoadMoreChat); //addAll 인덱스0으로 주면 앞에 추가..
+                mChatAdapter.notifyDataSetChanged();
+                mRecyclerView.scrollToPosition(mLoadMoreChat.size());
+                //추가 로딩됨과 동시에 화면에 표시되는 목록 위치는 추가된 목록의 맨아래 위치로
+                mLoadMoreChat.clear(); //사용된 추가목록 리스트는 초기 리스트에 추가한 후 다음 목록 추가를 위해 비움.
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
     }
+
 
     private void goSendFile() {
         buttonSendFile.setOnClickListener(new View.OnClickListener() {
