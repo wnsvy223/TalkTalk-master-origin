@@ -1,10 +1,8 @@
 package com.example.home.mytalk.Fragment;
 
 
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -12,10 +10,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import com.example.home.mytalk.Activity.SearchFriendActivity;
 import com.example.home.mytalk.Adapter.FriendAdapterExpandable;
 import com.example.home.mytalk.Adapter.FriendAdapter;
 import com.example.home.mytalk.Model.Friend;
@@ -38,7 +34,6 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
     private List<Friend> mFriend;
     private FriendAdapter mAdapter;
     private String userID;
-    private ValueEventListener mRootValueListener;
     private ValueEventListener mFriendValueListener;
     private ValueEventListener mUserValueListener;
     CoordinatorLayout rootLayout;
@@ -71,40 +66,12 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
         friendAdapterExpandable = new FriendAdapterExpandable(friendListData, getContext());
         mRecyclerView.setAdapter(friendAdapterExpandable);
 
-
         return view;
-    }
-
-
-    private void getRootReference(){
-        //최상위 루트노드를 참조하면 users 노드의 로그 인/아웃 데이터 변화 감지되므로 사용자가 접속하면 친추목록참조(AddFriend)에서
-        //친추목록값 contact를 받아오고 users노드의 사용자 정보값 가져옴.
-        rootRef = FirebaseDatabase.getInstance().getReference().getRoot().child("AddFriend");
-        rootRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-               // Log.d(TAG,"루트 자식 AddFriend 참조값 : "+ dataSnapshot.child("AddFriend").getValue());
-                String currentUser = userID;
-                if(dataSnapshot.hasChildren()) {
-                    String user = dataSnapshot.getValue().toString();
-                    if (user.contains(currentUser)) {
-                        getFriebaseAddUserReference();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
     }
 
     private void getFriebaseAddUserReference(){
 
             FriendRef = FirebaseDatabase.getInstance().getReference("AddFriend").child(userID);
-
             FriendRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -133,7 +100,7 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Friend friend = postSnapshot.getValue(Friend.class);
                     String key = friend.getKey();
-                    if(!TextUtils.isEmpty(key) && contact.contains(key)){ //NPE 체크는 TextUtils 로 해야 객체(Null), 문자열(isEmpty) 모두 한꺼번에 체크.
+                    if(!TextUtils.isEmpty(key) && contact.contains(key)){
                         //mFriend.add(friend)
                         FriendAdapterExpandable.Item friendData = new FriendAdapterExpandable.Item(FriendAdapterExpandable.HEADER,  friend.getName(),friend.getPhoto(),friend.getState(),null,null,friend.getKey());
                         friendData.invisibleChildren = new ArrayList<>();
@@ -160,14 +127,12 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
         super.onStart();
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email",MODE_PRIVATE );
         userID = sharedPreferences.getString("uid", "");
-        getRootReference();
-
+        getFriebaseAddUserReference();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        //rootRef.removeEventListener(mRootValueListener);
         //FriendRef.removeEventListener(mFriendValueListener);
         //UserDataRef.removeEventListener(mUserValueListener);
     }
