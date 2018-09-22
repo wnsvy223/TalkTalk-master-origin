@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.nfc.Tag;
@@ -14,7 +15,6 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.util.AsyncListUtil;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -35,6 +35,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.support.v7.widget.SearchView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,14 +52,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -107,7 +106,7 @@ public class ChatActivity extends AppCompatActivity {
     private SharedPreferences locationSwitchPref;
     private int firstVisibleItem, totalItemCount;
     private List<String> keyList = new ArrayList<>();
-
+    private Query query;
 
 
     @Override
@@ -239,10 +238,8 @@ public class ChatActivity extends AppCompatActivity {
                 ChatDisplayReference = database.getReference("oneToOneMessage").child(currentUid).child(FriendChatUid); // 1:1 메시지 참조
             }
         }
-
-
-        ChatDisplayReference.limitToLast(10).addChildEventListener(new ChildEventListener() {
-            //최근채팅10개 조회
+        ChatDisplayReference.limitToLast(15).addChildEventListener(new ChildEventListener() {
+            //최근채팅15개 조회
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Chat chat = dataSnapshot.getValue(Chat.class);
@@ -277,54 +274,141 @@ public class ChatActivity extends AppCompatActivity {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                totalItemCount = mLayoutManager.getItemCount(); //화면에 보이는 채팅목록 갯수
-                firstVisibleItem = mLayoutManager.findFirstCompletelyVisibleItemPosition(); //화면에 보이는 채팅목록 맨 윗 포지션(=0)
-                if(mRecyclerView.getVerticalScrollbarPosition() == firstVisibleItem){
-
-                    //메시지 추가 로딩
-                    ChatDisplayReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            keyList.clear();
-                            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                                String key = postSnapshot.getKey();
-                                keyList.add(0, key); //채팅목록의 전체 키-노드값이 들어가있음 (인덱스0으로 주면 역순으로 추가)
+                if (mRecyclerView != null) {
+                    firstVisibleItem = mLayoutManager.findFirstCompletelyVisibleItemPosition(); //화면에 보이는 채팅목록 맨 윗 포지션(=0)
+                    if (mRecyclerView.getVerticalScrollbarPosition() == firstVisibleItem) {
+                        //메시지 추가 로딩
+                        ChatDisplayReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                totalItemCount = mLayoutManager.getItemCount(); //화면에 보이는 채팅목록 갯수
+                                keyList.clear();
+                                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                                    String key = postSnapshot.getKey();
+                                    keyList.add(0, key); //채팅목록의 전체 키-노드값이 들어가있음 (인덱스0으로 주면 역순으로 추가)
+                                }
+                                int topPosition = totalItemCount + 10; //새로 추가될 목록의 탑 포지션은 화면에 표시된 메시지갯수 + 10
+                                if (topPosition <= keyList.size() - 1) {
+                                    //채팅전체목록값보다 작을경우(= 아직 로딩될 채팅이 남은 경우)
+                                    String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 아래 채팅노드 키값
+                                    String topKey = keyList.get(topPosition); //현재 화면의 맨 위 채팅노드 키값
+                                    loadMoreMessage(ChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
+                                } else if ((keyList.size()) != totalItemCount && ((totalItemCount - keyList.size())) < 10) {
+                                    //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
+                                    String lastBottomKey = keyList.get(totalItemCount);
+                                    int lastTopPosition = totalItemCount + ((keyList.size() - 1) - totalItemCount); //추가되는 메시지목록수 =  남은 채팅목록수
+                                    String lastTopKey = keyList.get(lastTopPosition);
+                                    loadMoreMessage(ChatDisplayReference, lastBottomKey, lastTopKey);
+                                } else {
+                                    //모두 로딩된 경우
+                                    Toast.makeText(getApplicationContext(), "더 이상 대화 내용이 없습니다.", Toast.LENGTH_SHORT).show();
+                                }
                             }
 
-                            int topPosition = totalItemCount + 9; //새로 추가될 목록의 탑 포지션은 화면에 표시된 메시지갯수 + 9
-                            if (topPosition <= keyList.size()) {
-                                //채팅전체목록값보다 작을경우(= 아직 로딩될 채팅이 남은 경우)
-                                String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 마지막 채팅노드 키값
-                                String topKey = keyList.get(topPosition); //현재 화면의 맨 위 채팅노드 키값
-                                loadMoreMessage(ChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
-                            }else if((keyList.size()) != totalItemCount && ( keyList.size() - topPosition) <= 9){
-                                //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
-                                int lastTopPosition = topPosition + ((keyList.size()-1) - topPosition); //추가되는 메시지목록수 =  남은 채팅목록수
-                                String lastBottomKey = keyList.get(totalItemCount);
-                                String lastTopKey = keyList.get(lastTopPosition);
-                                loadMoreMessage(ChatDisplayReference, lastBottomKey, lastTopKey);
-                            }else{
-                                //모두 로딩된 경우
-                                Toast.makeText(getApplicationContext(),"더 이상 대화 내용이 없습니다.",Toast.LENGTH_SHORT).show();
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
                             }
-                        }
+                        });
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
+                    }
                 }
             }
         });
-
         mChat = new ArrayList<>(); //초기 화면 채팅 목록
         mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
-        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext);
+        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null);
         mRecyclerView.setAdapter(mChatAdapter);
     }
 
+
+    private void searchConversation(SearchView searchView){
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //키보드 검색버튼 눌렀을때 검색
+                if(query.length() < 2) {
+                    getSearchResult(query,"oneWord");
+                }else{
+                    getSearchResult(query,"longWord");
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //서치뷰의 텍스트값 변경 시 검색
+                return false;
+            }
+        });
+    }
+
+
+    private void getSearchResult( final String message, String queryType){
+        if(queryType.equals("oneWord")){
+            query = ChatDisplayReference.orderByChild("text").endAt(message +  "\uf8ff");
+        }else{
+            query = ChatDisplayReference.orderByChild("text").startAt(message).endAt(message +  "\uf8ff");
+        }
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                List<String> searchKeyList = new ArrayList<>();
+                if(!dataSnapshot.hasChildren()){
+                    Toast.makeText(getApplicationContext(),"검색된 대화가 없습니다.",Toast.LENGTH_SHORT).show();
+                }else {
+                    for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                        String searchMessageKey = postSnapshot.getKey();
+                        searchKeyList.add(searchMessageKey);
+                    }
+                    Log.d("서치리스트", String.valueOf(searchKeyList));
+                    for(int i=0; i<searchKeyList.size(); i++){
+                        if(searchKeyList.size() > 1) {
+                            loadSearchMessage(searchKeyList.get(0), message);
+                            //검색어가 동일한 경우 리스트의 첫번째 인덱스(0)가 가장 오래된 메시지이므로
+                            //0번째 인덱스부터 메시지 로드하면 뒷 메시지들도 로딩됨.
+                        }else{
+                            loadSearchMessage(searchKeyList.get(i), message);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void loadSearchMessage(String searchQueryKey, String searchString){
+        //getSearchResult에서 넘어온 채팅노드의 키값 searchQuery로 시작하는 채팅목록을 불러와서
+        //리스트 비운 뒤 검색어로 검색된 부분부터 시작되는 채팅노드값을 불러와서 리스트에 추가 후 그 리스트를가지고 어댑터 세팅
+        ChatDisplayReference.orderByKey().startAt(searchQueryKey).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mChat.clear();
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Chat chat = postSnapshot.getValue(Chat.class);
+                    mChat.add(chat);
+                    mChatAdapter.notifyDataSetChanged();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        mChat = new ArrayList<>();
+        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext, searchString);
+        mRecyclerView.setAdapter(mChatAdapter);
+        //검색 키워드값을 인자로 가진 어댑터 생성해서 뷰 다시 생성
+        //어댑터에서 인자값을 비교하여 해당 검색된 메시지는 컬러 변경
+    }
 
     private void loadMoreMessage(DatabaseReference databaseReference, String last, String first){
         //채팅노드 키값으로 정렬하여 인자값으로 받은 시작점, 끝점노드의 키값데이터만 가져와서 리스트에 추가 후
@@ -338,7 +422,7 @@ public class ChatActivity extends AppCompatActivity {
                     Chat chat = postSnapshot.getValue(Chat.class);
                     mLoadMoreChat.add(chat);
                 }
-                mChat.addAll(0,mLoadMoreChat); //addAll 인덱스0으로 주면 앞에 추가..
+                mChat.addAll(0,mLoadMoreChat); //addAll 인덱스0으로 주면 앞에 추가
                 mChatAdapter.notifyDataSetChanged();
                 mRecyclerView.scrollToPosition(mLoadMoreChat.size());//추가 로딩됨과 동시에 화면에 표시되는 목록 위치는 추가된 목록의 맨아래 위치로
                 mLoadMoreChat.clear(); //사용된 추가목록 리스트는 초기 리스트에 추가한 후 다음 목록 추가를 위해 비움.
@@ -349,9 +433,7 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
-
     }
-
 
     private void goSendFile() {
         buttonSendFile.setOnClickListener(new View.OnClickListener() {
@@ -462,10 +544,29 @@ public class ChatActivity extends AppCompatActivity {
         this.finish();
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (FriendChatUid != null && FriendChatUid.contains("Group@")) {
-            getMenuInflater().inflate(R.menu.menu_invite, menu); //그룹채팅일때만 초대 버튼 활성화
+            getMenuInflater().inflate(R.menu.menu_invite, menu); //그룹채팅일때 = 초대버튼,검색버튼 메뉴
+            SearchView searchView_group = (SearchView) menu.findItem(R.id.action_button_search_group).getActionView();
+            searchView_group.setMaxWidth(Integer.MAX_VALUE);
+            searchView_group.setQueryHint("대화 검색");
+            SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete)searchView_group.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+            searchAutoComplete.setHintTextColor(Color.GRAY);
+            ImageView closeButton = (ImageView)searchView_group.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            closeButton.setColorFilter(Color.GRAY);
+            searchConversation(searchView_group);
+        }else{
+            getMenuInflater().inflate(R.menu.menu_chat, menu); //1:1채팅일때 = 검색버튼 메뉴
+            SearchView searchView = (SearchView)menu.findItem(R.id.action_button_search).getActionView();
+            searchView.setMaxWidth(Integer.MAX_VALUE);
+            searchView.setQueryHint("대화 검색");
+            SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete)searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+            searchAutoComplete.setHintTextColor(Color.GRAY);
+            ImageView closeButton = (ImageView)searchView.findViewById(android.support.v7.appcompat.R.id.search_close_btn);
+            closeButton.setColorFilter(Color.GRAY);
+            searchConversation(searchView);
         }
         return true;
     }
@@ -478,10 +579,10 @@ public class ChatActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), GroupChatActivity.class);
             intent.putExtra("invite", FriendChatUid);
             startActivity(intent);
-
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     private void getCurrentValue() {
         DatabaseReference nameReference = database.getReference("users").child(currentUid);
@@ -694,7 +795,6 @@ public class ChatActivity extends AppCompatActivity {
                 .setValue(formattedDate);
     }
 
-
     private void setActionbarTitle(){
         if(!TextUtils.isEmpty(OpenChatRoom)){
             actionBar.setTitle("공개채팅");
@@ -719,7 +819,10 @@ public class ChatActivity extends AppCompatActivity {
                 }
             });
         }
+
     }
+
+
 
     @Override
     protected void onPause() {

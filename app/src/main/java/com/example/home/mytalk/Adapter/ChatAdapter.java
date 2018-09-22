@@ -36,6 +36,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import org.jsoup.helper.StringUtil;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -48,6 +50,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
 
     private List<Chat> mChat;
     private String stEmail;
+    private String searchText;
     public Context context;
     private final static int RIGHT_MESSAGE = 0;
     private final static int LEFT_MESSAGE = 1;
@@ -81,10 +84,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     }
 
 
-    public ChatAdapter(List<Chat> mChat, String email, Context context ) {
+    public ChatAdapter(List<Chat> mChat, String email, Context context, String searchText ) {
         this.mChat = mChat;
         this.stEmail = email;
         this.context = context;
+        this.searchText = searchText;
     }
 
 
@@ -147,9 +151,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
         if(holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
-            String message = mChat.get(holder.getAdapterPosition()).getText();
             holder.iconImage.setColorFilter(Color.parseColor("#88000000"), PorterDuff.Mode.MULTIPLY); //이미지뷰 어둡게 효과주기
-
+            String message = mChat.get(holder.getAdapterPosition()).getText();
             String ID = mChat.get(holder.getAdapterPosition()).getName(); //채팅창 좌,우 구분값은 Email로 구분하고 뷰에 보여지는것은 Name으로 함.
             holder.tvName.setText(ID);
             holder.tvTime.setText(mChat.get(holder.getAdapterPosition()).getTime());
@@ -218,6 +221,14 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
                 });
             }
             if (holder.mTextView != null) {
+                if(searchText != null) {
+                    if (mChat.get(holder.getAdapterPosition()).getText().contains(searchText)) {
+                        holder.setIsRecyclable(false);
+                        // 메시지 검색으로 어댑터 생성 시 리사이클러뷰 재사용 중지 (뷰 재사용으로인해 다른 position에도 적용됨)
+                        holder.mTextView.setTextColor(Color.RED);
+                        holder.mTextView.setTextSize(25f);
+                    }
+                }
                 holder.mTextView.setText(message);
                 holder.mTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -225,6 +236,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
                         Toast.makeText(context, "텍스트 메시지 클릭", Toast.LENGTH_SHORT).show();
                     }
                 });
+
             }
             if (holder.mVideoView != null) {
                 holder.mVideoView.setVideoURI(Uri.parse(message));
