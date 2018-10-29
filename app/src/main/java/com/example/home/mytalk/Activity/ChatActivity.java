@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -52,7 +51,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
@@ -62,7 +63,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
+
 
 
 public class ChatActivity extends AppCompatActivity {
@@ -92,8 +95,8 @@ public class ChatActivity extends AppCompatActivity {
     public Context mContext;
     public static String OpenChatRoom;
     private String FriendChatUid;
-    private DatabaseReference ChatDisplayReference;
-    private DatabaseReference ChatReference;
+    private DatabaseReference mChatDisplayReference;
+    private DatabaseReference mChatReference;
     private DatabaseReference mRootRef;
     private DatabaseReference FriendChatRoom;
     private ProgressBar uploadProgress;
@@ -107,7 +110,8 @@ public class ChatActivity extends AppCompatActivity {
     private int firstVisibleItem, totalItemCount;
     private List<String> keyList = new ArrayList<>();
     private Query query;
-
+    public ArrayList<String> unReadUserList;
+    private ChildEventListener chatMessageListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,6 +154,7 @@ public class ChatActivity extends AppCompatActivity {
         Intent intent = getIntent();
         OpenChatRoom = intent.getStringExtra("OpenChat"); //공개방으로 부터 생성된 채팅액티비티
         FriendChatUid = intent.getStringExtra("FriendChatUid"); //1:1 또는 그룹 채팅방으로 부터 생성된 채팅액티비티
+        unReadUserList = intent.getStringArrayListExtra("unReadUserList");
 
         String MyKey = intent.getStringExtra("MyKey");
         if (MyKey != null) {
@@ -228,46 +233,6 @@ public class ChatActivity extends AppCompatActivity {
         // 너무 빠르게 채팅메시지를 입력할 경우 이전 메시지가 전송버튼을 눌렀음에도 적용되지않는 경우 발생.
 
 
-        //------------------------------------채팅화면 생성되면 메시지들 참조하는 부분--------------------------------//
-        if (!TextUtils.isEmpty(OpenChatRoom)) { //채팅액티비티로 넘어올때 인텐트값이 공개방 생성값이면 공개채팅 참조
-            ChatDisplayReference = database.getReference("openChatRoom").child(OpenChatRoom);
-        } else if (!TextUtils.isEmpty(FriendChatUid)) { //채팅액티비티로 넘어올때 인텐트값이 친구대화방 생성값이면 친구대화방 참조
-            if (FriendChatUid.contains("Group@")) {
-                ChatDisplayReference = database.getReference("groupMessage").child(FriendChatUid); // 그룹 메시지 참조
-            } else {
-                ChatDisplayReference = database.getReference("oneToOneMessage").child(currentUid).child(FriendChatUid); // 1:1 메시지 참조
-            }
-        }
-        ChatDisplayReference.limitToLast(15).addChildEventListener(new ChildEventListener() {
-            //최근채팅15개 조회
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Chat chat = dataSnapshot.getValue(Chat.class);
-                mChat.add(chat);
-                mRecyclerView.scrollToPosition(mChat.size() - 1);
-                mChatAdapter.notifyItemInserted(mChat.size() - 1);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
 
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -278,7 +243,7 @@ public class ChatActivity extends AppCompatActivity {
                     firstVisibleItem = mLayoutManager.findFirstCompletelyVisibleItemPosition(); //화면에 보이는 채팅목록 맨 윗 포지션(=0)
                     if (mRecyclerView.getVerticalScrollbarPosition() == firstVisibleItem) {
                         //메시지 추가 로딩
-                        ChatDisplayReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        mChatDisplayReference.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 totalItemCount = mLayoutManager.getItemCount(); //화면에 보이는 채팅목록 갯수
@@ -292,13 +257,13 @@ public class ChatActivity extends AppCompatActivity {
                                     //채팅전체목록값보다 작을경우(= 아직 로딩될 채팅이 남은 경우)
                                     String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 아래 채팅노드 키값
                                     String topKey = keyList.get(topPosition); //현재 화면의 맨 위 채팅노드 키값
-                                    loadMoreMessage(ChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
+                                    loadMoreMessage(mChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
                                 } else if ((keyList.size()) != totalItemCount && ((totalItemCount - keyList.size())) < 10) {
                                     //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
                                     String lastBottomKey = keyList.get(totalItemCount);
                                     int lastTopPosition = totalItemCount + ((keyList.size() - 1) - totalItemCount); //추가되는 메시지목록수 =  남은 채팅목록수
                                     String lastTopKey = keyList.get(lastTopPosition);
-                                    loadMoreMessage(ChatDisplayReference, lastBottomKey, lastTopKey);
+                                    loadMoreMessage(mChatDisplayReference, lastBottomKey, lastTopKey);
                                 } else {
                                     //모두 로딩된 경우
                                     Toast.makeText(getApplicationContext(), "더 이상 대화 내용이 없습니다.", Toast.LENGTH_SHORT).show();
@@ -317,10 +282,129 @@ public class ChatActivity extends AppCompatActivity {
         });
         mChat = new ArrayList<>(); //초기 화면 채팅 목록
         mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
-        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null);
+        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null,FriendChatUid);
         mRecyclerView.setAdapter(mChatAdapter);
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        //------------------------------------채팅화면 생성되면 메시지들 참조하는 부분--------------------------------//
+        if (!TextUtils.isEmpty(OpenChatRoom)) { //채팅액티비티로 넘어올때 인텐트값이 공개방 생성값이면 공개채팅 참조
+            mChatDisplayReference = database.getReference("openChatRoom").child(OpenChatRoom);
+        } else if (!TextUtils.isEmpty(FriendChatUid)) { //채팅액티비티로 넘어올때 인텐트값이 친구대화방 생성값이면 친구대화방 참조
+            if (FriendChatUid.contains("Group@")) {
+                mChatDisplayReference = database.getReference("groupMessage").child(FriendChatUid); // 그룹 메시지 참조
+            } else {
+                mChatDisplayReference = database.getReference("oneToOneMessage").child(currentUid).child(FriendChatUid); // 1:1 메시지 참
+            }
+        }
+        chatMessageListener =  mChatDisplayReference.limitToLast(15).addChildEventListener(new ChildEventListener() {
+            //최근채팅15개 조회
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Chat chat = dataSnapshot.getValue(Chat.class);
+                List<String> unReadUserList = chat.getUnReadUserList();
+                if(unReadUserList != null){
+                    if(unReadUserList.contains(currentUid)){
+                        // firebase Transaction을 이용한 메시지 읽음 표시
+                        // 각 메시지 노드마다 unReadCount 와 unReadUserList를 두어 메시지를 읽으러 액티비티로 들어왔을 때
+                        // unReaUserList에서 해당 유저의 키값 삭제 & unReadCount = 리스트사이즈
+                        dataSnapshot.getRef().runTransaction(new Transaction.Handler() {
+                            @Override
+                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                Chat mutableChat = mutableData.getValue(Chat.class);
+                                List <String> mutableUnReadUserList = mutableChat.getUnReadUserList();
+                                mutableUnReadUserList.remove(currentUid);
+                                int mutableUnreadCount = mutableChat.getUnReadUserList().size();
+
+                                Chat mutable = mutableData.getValue(Chat.class);
+                                mutable.setUnReadUserList(mutableUnReadUserList);
+                                mutable.setUnReadCount(mutableUnreadCount);
+                                mutableData.setValue(mutable);
+
+                                return Transaction.success(mutableData);
+                            }
+
+                            @Override
+                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                            }
+                        });
+                    }
+                }else{
+                    // 1:1채팅은 해당 메시지에 직접 seen값 변경
+                    String messageId = chat.getMessageID();
+                    Log.d("로그",messageId);
+                    database.getReference("oneToOneMessage").child(FriendChatUid).child(currentUid).child(messageId).child("seen").setValue(true);
+                }
+
+                mChat.add(chat);
+                mRecyclerView.scrollToPosition(mChat.size() - 1);
+                mChatAdapter.notifyItemInserted(mChat.size() - 1);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Chat chat = dataSnapshot.getValue(Chat.class);
+                mChatAdapter.updateItem(chat);
+                //List<String> messageId  = chat.getUnReadUserList();
+                //Log.d("메시지리로드", String.valueOf(messageId));
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        mChat = new ArrayList<>(); //채팅 목록(그룹채팅 액티비티 진입 후 돌아오면 Resume에서 다시 그려줘야됨)
+        mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
+        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null,FriendChatUid);
+        mRecyclerView.setAdapter(mChatAdapter);
+
+     /*
+        if(Set_position != -1){
+            imageView_back.setBackgroundResource(Set_position);
+        }
+     */
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        mChatDisplayReference.removeEventListener(chatMessageListener);
+        // 채팅액티비티 나가면 읽음표시 트랜잭션이 비활성화 되어야 하므로 리스너 제거
+        // onResume에서 다시 리스너 생성
+        sharedPreferences_img = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPreferences_img.edit();
+        editor.putInt("img_set", Set_position);
+        editor.apply();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        sharedPreferences_img = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPreferences_img.edit();
+        editor.putInt("img_set", Set_position);
+        editor.apply();
+    }
 
     private void searchConversation(SearchView searchView){
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -344,11 +428,11 @@ public class ChatActivity extends AppCompatActivity {
     }
 
 
-    private void getSearchResult( final String message, String queryType){
+    private void getSearchResult(final String message, String queryType){
         if(queryType.equals("oneWord")){
-            query = ChatDisplayReference.orderByChild("text").endAt(message +  "\uf8ff");
+            query = mChatDisplayReference.orderByChild("text").endAt(message +  "\uf8ff");
         }else{
-            query = ChatDisplayReference.orderByChild("text").startAt(message).endAt(message +  "\uf8ff");
+            query = mChatDisplayReference.orderByChild("text").startAt(message ).endAt(message +  "\uf8ff");
         }
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -385,7 +469,7 @@ public class ChatActivity extends AppCompatActivity {
     private void loadSearchMessage(String searchQueryKey, String searchString){
         //getSearchResult에서 넘어온 채팅노드의 키값 searchQuery로 시작하는 채팅목록을 불러와서
         //리스트 비운 뒤 검색어로 검색된 부분부터 시작되는 채팅노드값을 불러와서 리스트에 추가 후 그 리스트를가지고 어댑터 세팅
-        ChatDisplayReference.orderByKey().startAt(searchQueryKey).addValueEventListener(new ValueEventListener() {
+        mChatDisplayReference.orderByKey().startAt(searchQueryKey).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 mChat.clear();
@@ -404,7 +488,7 @@ public class ChatActivity extends AppCompatActivity {
         });
 
         mChat = new ArrayList<>();
-        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext, searchString);
+        mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext, searchString,FriendChatUid);
         mRecyclerView.setAdapter(mChatAdapter);
         //검색 키워드값을 인자로 가진 어댑터 생성해서 뷰 다시 생성
         //어댑터에서 인자값을 비교하여 해당 검색된 메시지는 컬러 변경
@@ -640,33 +724,36 @@ public class ChatActivity extends AppCompatActivity {
 
         String current_user_ref = "oneToOneMessage/" + currentUid + "/" + FriendChatUid;
         String chat_user_ref = "oneToOneMessage/" + FriendChatUid + "/" + currentUid;
-        ChatReference = database.getReference("oneToOneMessage");
-        String push_id = ChatReference.getKey();
+        mChatReference = database.getReference("oneToOneMessage");
+        String push_id = mChatReference.getKey();
+        String messagId = mChatReference.push().getKey();
 
         HashMap message = new HashMap();
         message.put("name", currentName);
         message.put("email", currentEmail);
         message.put("text", messageText);
+        message.put("from",currentUid);
         message.put("type", type);
         message.put("photo", currentPhoto);
         message.put("time", formattedDate);
         message.put("seen", false);
-        message.put("from", currentUid);
+        message.put("messageID",messagId);
+
 
         HashMap messageUserMap = new HashMap();
         messageUserMap.put(current_user_ref + "/" + push_id, message);
         messageUserMap.put(chat_user_ref + "/" + push_id, message);
 
         mRootRef = database.getReference();
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("seen").setValue(true);
+        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("seen").setValue(false);
         mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("timestamp").setValue(formattedDate);
         mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("Roomtype").setValue("OneToOne");
-        ChatReference.child(currentUid).child(FriendChatUid).push().setValue(message);
+        mChatReference.child(currentUid).child(FriendChatUid).child(messagId).setValue(message);
 
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("seen").setValue(true);
+        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("seen").setValue(false);
         mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("timestamp").setValue(formattedDate);
         mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("Roomtype").setValue("OneToOne");
-        ChatReference.child(FriendChatUid).child(currentUid).push().setValue(message);
+        mChatReference.child(FriendChatUid).child(currentUid).child(messagId).setValue(message);
 
         // 해당유저와 1:1채팅 메시지를 전송하면 해당유저와의 대화창 목록을
         // FriendChatRoom노드에 추가해서 리스트에 표시되도록 하는 형태.
@@ -705,7 +792,9 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void setGroupMessage(String messageText, String type) {
-        ChatReference = database.getReference("groupMessage").child(FriendChatUid);
+
+        mChatReference = database.getReference("groupMessage").child(FriendChatUid);
+        String messageId = mChatReference.push().getKey();
         HashMap message = new HashMap();
         message.put("name", currentName);
         message.put("email", currentEmail);
@@ -714,7 +803,10 @@ public class ChatActivity extends AppCompatActivity {
         message.put("photo", currentPhoto);
         message.put("time", formattedDate);
         message.put("key", currentUid);
-        ChatReference.push().setValue(message);
+        message.put("unReadUserList",unReadUserList);
+        message.put("unReadCount",unReadUserList.size());
+        message.put("messageID",messageId);
+        mChatReference.child(messageId).setValue(message);
 
         FriendChatRoom.child(currentUid).child(FriendChatUid).child("joinUserKey").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -743,12 +835,11 @@ public class ChatActivity extends AppCompatActivity {
                     public void onCancelled(DatabaseError databaseError) {
 
                     }
-                });
-
-}
+            });
+    }
 
     private void setOpenMessage(String messageText, String type){
-        ChatReference = database.getReference("openChatRoom").child(OpenChatRoom);
+        mChatReference = database.getReference("openChatRoom").child(OpenChatRoom);
 
         HashMap message = new HashMap();
         message.put("name", currentName);
@@ -758,7 +849,7 @@ public class ChatActivity extends AppCompatActivity {
         message.put("photo",currentPhoto);
         message.put("time", formattedDate);
         message.put("key", currentUid);
-        ChatReference.push().setValue(message);
+        mChatReference.push().setValue(message);
     }
 
     private void resetBadgeCount(final String key){
@@ -823,37 +914,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
 
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        sharedPreferences_img = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = sharedPreferences_img.edit();
-        editor.putInt("img_set", Set_position);
-        editor.apply();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        sharedPreferences_img = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = sharedPreferences_img.edit();
-        editor.putInt("img_set", Set_position);
-        editor.apply();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-     /*
-        if(Set_position != -1){
-            imageView_back.setBackgroundResource(Set_position);
-        }
-     */
-
-    }
 
     @Override
     protected void onNewIntent(Intent intent) {

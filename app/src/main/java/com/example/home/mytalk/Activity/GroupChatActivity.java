@@ -156,7 +156,7 @@ public class GroupChatActivity extends AppCompatActivity {
                     default:
                         inviteUserNum = String.valueOf(checkKey.size()) + "People";
                 }
-                for (int i = 0; i < checkKey.size(); i++) {
+                for (int i = 0; i < checkKey.size()-1; i++) {
 
                     HashMap checkedUser = new HashMap();
                     //checkedUser.put("seen", false);
@@ -235,6 +235,9 @@ public class GroupChatActivity extends AppCompatActivity {
 
     private void setSystemMessage(List<String> joinUser){
         if(joinUser.size() > 0) {
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(invite);
+            String messageID = databaseReference.push().getKey();
+
             HashMap message = new HashMap();
             message.put("text", joinUser + "님이 대화에 참가했습니다.");
             message.put("name", "System");
@@ -243,9 +246,11 @@ public class GroupChatActivity extends AppCompatActivity {
             message.put("type","System");
             message.put("time", formattedDate);
             message.put("key", "System");
-            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("groupMessage")
-                    .child(invite);
-            databaseReference.push().setValue(message);
+            message.put("unReadCount", 0);
+            message.put("unReadUserList", null);
+            message.put("messageID",messageID );
+
+            databaseReference.child(messageID).setValue(message);
         }
     }
 

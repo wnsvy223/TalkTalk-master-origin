@@ -67,6 +67,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
     private DatabaseReference mMessageDatabase;
     private DatabaseReference mUsersDatabase;
     private DatabaseReference mGroupMessageDatabase;
+    private DatabaseReference mSystemMessageDatabase;
     private String currentUid;
     private List<String> newListKey;
     private List<String> newListName;
@@ -316,10 +317,24 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                     viewHolder.mView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent intent = new Intent(getActivity(), ChatActivity.class);
-                            intent.putExtra("FriendChatUid", list_room_id);
-                            intent.putExtra("position", viewHolder.getAdapterPosition());
-                            startActivity(intent);
+
+                            mConversationMe.child(list_room_id).child("joinUserKey").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    Intent intent = new Intent(getActivity(), ChatActivity.class);
+                                    intent.putExtra("FriendChatUid", list_room_id);//채팅방제목 키값
+                                    intent.putExtra("position", viewHolder.getAdapterPosition());
+                                    List<String> unReadUserLIst = (List<String>) dataSnapshot.getValue();
+                                    intent.putStringArrayListExtra("unReadUserList", (ArrayList<String>) unReadUserLIst);// 참가자들 목록
+                                    startActivity(intent);
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
 
                             mConversationMe.child(list_room_id).child("badgeCount").setValue(0); //채팅방 리스트 뱃지카운트 리셋
                             mConversationMe.addValueEventListener(new ValueEventListener() {
@@ -392,12 +407,11 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
                                                     }
                                                 });
-                                                //------ 참가 유저 방 탈출 시 시스템메시지 출력 ----//
-                                                setSystemMessage(list_room_id, "groupMessage", null);
+                                                setSystemMessage(list_room_id, "groupMessage", null); //유저 퇴장 시스템메시지
                                             } else {
                                                 removeNode(list_room_id, mConversationMe); //1:1 대화목록에서 MY NODE 삭제
                                                 removeNode(list_room_id, mMessageDatabase); //1:1 채팅에서 MY 메시지 삭제
-                                                setSystemMessage(list_room_id, "oneToOneMessage", currentUid);
+                                                setSystemMessage(list_room_id, "oneToOneMessage", currentUid); //유저 퇴장 시스템메시지
                                             }
                                         }
                                     });
@@ -742,6 +756,13 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
         String formattedDate = simpleDateFormat.format(calendar.getTime());
 
+        if(roomType.equals("groupMessage")){
+            mSystemMessageDatabase = FirebaseDatabase.getInstance().getReference("groupMessage").child(listRoom);
+        }else {
+            mSystemMessageDatabase = FirebaseDatabase.getInstance().getReference("oneToOneMessage").child(listRoom).child(myNode);
+        }
+        String messageID = mSystemMessageDatabase.push().getKey();
+
         HashMap message = new HashMap();
         message.put("text", "[" + currentName + "]" + "님이 대화방을 나갔습니다.");
         message.put("name", "System");
@@ -750,14 +771,10 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         message.put("photo","System");
         message.put("time", formattedDate);
         message.put("key","System");
-
-        if(roomType.equals("groupMessage")){
-            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(listRoom);
-            databaseReference.push().setValue(message);
-        }else {
-            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("oneToOneMessage").child(listRoom).child(myNode);
-            databaseReference.push().setValue(message);
-        }
+        message.put("unReadCount", 0);
+        message.put("unReadUserList", null);
+        message.put("messageID",messageID );
+        mSystemMessageDatabase.child(messageID).setValue(message);
     }
 
     public void getCurrentValue(){

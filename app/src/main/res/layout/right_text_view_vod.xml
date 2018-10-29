@@ -43,7 +43,6 @@
         android:id="@+id/tvEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
         android:textSize="17sp"
         android:visibility="gone"
         android:layout_alignParentTop="true"
@@ -53,10 +52,24 @@
         android:id="@+id/tvTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Time"
+        android:textSize="12sp"
+        android:gravity="center"
         android:layout_marginEnd="2dp"
         android:layout_alignParentTop="true"
+        android:layout_marginBottom="15dp"
         android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:id="@+id/tvUnRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/video"
+        android:layout_alignStart="@+id/video"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:layout_marginBottom="15dp"
+        android:maxWidth="80dp"
+        android:textColor="#ff7c0a" />
 
     <VideoView
         android:id="@+id/video"

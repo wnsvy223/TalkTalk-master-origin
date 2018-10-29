@@ -28,6 +28,9 @@ public class Friend{
         this.latitude = latitude;
         this.longitude = longitude;
         this.accept = accept;
+        this.isCheck = isCheck;
+        this.name = name;
+        this.phone = phone;
     }
 
     public Friend() {

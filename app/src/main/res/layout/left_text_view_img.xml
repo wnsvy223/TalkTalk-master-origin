@@ -54,6 +54,17 @@
         android:layout_below="@+id/tvEmail"
         android:layout_toEndOf="@+id/ivUser" />
 
+    <TextView
+        android:id="@+id/tvUnRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/my_chat_view_img"
+        android:layout_toEndOf="@+id/tvEmail"
+        android:gravity="center"
+        android:maxWidth="80dp"
+        android:textColor="#ff7c0a"
+        android:textSize="12sp" />
+
     <VideoView
         android:id="@+id/video"
         android:visibility="gone"

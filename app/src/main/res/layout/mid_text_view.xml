@@ -51,11 +51,18 @@
         android:visibility="gone"
         android:layout_alignStart="@+id/my_chat_view" />
 
+    <TextView
+        android:id="@+id/tvUnRead"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
     <VideoView
         android:id="@+id/video"
         android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
 
     <ImageView
         android:id="@+id/ic_video"

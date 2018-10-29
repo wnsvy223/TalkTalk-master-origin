@@ -54,6 +54,18 @@
         android:layout_marginBottom="8dp"
         android:textSize="12sp" />
 
+    <TextView
+        android:id="@+id/tvUnRead"
+        android:maxWidth="80dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/my_chat_view"
+        android:layout_toEndOf="@+id/tvTime"
+        android:gravity="center"
+        android:textColor="#ff7c0a"
+        android:layout_marginBottom="8dp"
+        android:textSize="12sp" />
+
     <VideoView
         android:id="@+id/video"
         android:visibility="gone"

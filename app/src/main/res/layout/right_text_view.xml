@@ -9,14 +9,13 @@
 
 
     <TextView
+        android:id="@+id/my_chat_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/my_chat_view"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
         android:background="@drawable/bubble_green"
-        android:textSize="15sp"
-        android:layout_marginTop="3dp"
-        android:layout_below="@+id/tvTime"
-        android:layout_alignParentEnd="true" />
+        android:textSize="15sp" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -53,10 +52,24 @@
         android:id="@+id/tvTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Time"
-        android:layout_marginEnd="2dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignBottom="@+id/my_chat_view"
+        android:layout_marginEnd="-1dp"
+        android:layout_toStartOf="@+id/my_chat_view"
+        android:gravity="center"
+        android:maxWidth="80dp"
+        android:layout_marginBottom="15dp"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/tvUnRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/my_chat_view"
+        android:layout_toStartOf="@+id/tvTime"
+        android:maxWidth="80dp"
+        android:textColor="#ff7c0a"
+        android:layout_marginBottom="15dp"
+        android:textSize="12sp" />
 
     <VideoView
         android:id="@+id/video"
@@ -69,5 +82,7 @@
         android:layout_width="50dp"
         android:layout_height="40dp"
         android:visibility="gone" />
+
+
 
 </RelativeLayout>
