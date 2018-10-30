@@ -83,13 +83,15 @@ public class UploadService extends Service{
         String progressText = intent.getStringExtra("progressText");
         Uri uri = intent.getParcelableExtra("uri"); //uri는 Parcelable 객체로 받아야 한다고 함. String으로 못받음.
         String room = intent.getStringExtra("room");
+        ArrayList<String> unReadUserLIst = intent.getStringArrayListExtra("unReadUserList");
+
         Log.d("업로드테스크", String.valueOf(uri)+path+fileType+messageType+progressText+room);
-        uploadStorage(path,fileType,uri,messageType,progressText, room);
+        uploadStorage(path,fileType,uri,messageType,progressText, room, unReadUserLIst);
 
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void uploadStorage(String storagePath, String fileType, Uri imageUri, final String messageType, final String progressText, final String room) {
+    private void uploadStorage(String storagePath, String fileType, Uri imageUri, final String messageType, final String progressText, final String room, final ArrayList<String> unReadUserList) {
 
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
@@ -109,7 +111,7 @@ public class UploadService extends Service{
                         setOpenMessage(download_url, messageType);
                     } else if (!TextUtils.isEmpty(room)) {
                         if (room.contains("Group@")) {
-                            setGroupMessage(download_url, messageType, room);
+                            setGroupMessage(download_url, messageType, room, unReadUserList);
                         } else {
                             setOneToOneMessage(download_url, messageType, room);
                         }
@@ -190,6 +192,7 @@ public class UploadService extends Service{
         String chat_user_ref = "oneToOneMessage/" + FriendChatUid + "/" + currentUid;
         ChatReference = FirebaseDatabase.getInstance().getReference("oneToOneMessage");
         String push_id = ChatReference.getKey();
+        String messageId = ChatReference.push().getKey();
 
         HashMap message = new HashMap();
         message.put("name", currentName);
@@ -200,21 +203,22 @@ public class UploadService extends Service{
         message.put("time", formattedDate);
         message.put("seen", false);
         message.put("from", currentUid);
+        message.put("messageID",messageId);
 
         HashMap messageUserMap = new HashMap();
         messageUserMap.put(current_user_ref + "/" + push_id, message);
         messageUserMap.put(chat_user_ref + "/" + push_id, message);
 
         mRootRef = FirebaseDatabase.getInstance().getReference();
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("seen").setValue(true);
+        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("seen").setValue(false);
         mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("timestamp").setValue(formattedDate);
         mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("Roomtype").setValue("OneToOne");
-        ChatReference.child(currentUid).child(FriendChatUid).push().setValue(message);
+        ChatReference.child(currentUid).child(FriendChatUid).child(messageId).setValue(message);
 
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("seen").setValue(true);
+        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("seen").setValue(false);
         mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("timestamp").setValue(formattedDate);
         mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("Roomtype").setValue("OneToOne");
-        ChatReference.child(FriendChatUid).child(currentUid).push().setValue(message);
+        ChatReference.child(FriendChatUid).child(currentUid).child(messageId).setValue(message);
 
         // 해당유저와 1:1채팅 메시지를 전송하면 해당유저와의 대화창 목록을
         // FriendChatRoom노드에 추가해서 리스트에 표시되도록 하는 형태.
@@ -254,13 +258,15 @@ public class UploadService extends Service{
         Log.d("업로드 서비스 종료","");
     }
 
-    private void setGroupMessage(String messageText, String type, final String FriendChatUid) {
+    private void setGroupMessage(String messageText, String type, final String FriendChatUid, ArrayList<String> unReadUserList) {
 
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
         formattedDate = simpleDateFormat.format(calendar.getTime());
 
         ChatReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(FriendChatUid);
+        String messageId = ChatReference.push().getKey();
+
         HashMap message = new HashMap();
         message.put("name", currentName);
         message.put("email", currentEmail);
@@ -269,7 +275,10 @@ public class UploadService extends Service{
         message.put("photo", currentPhoto);
         message.put("time", formattedDate);
         message.put("key", currentUid);
-        ChatReference.push().setValue(message);
+        message.put("unReadUserList",unReadUserList);
+        message.put("unReadCount",unReadUserList.size());
+        message.put("messageID",messageId);
+        ChatReference.child(messageId).setValue(message);
 
         FriendChatRoom.child(currentUid).child(FriendChatUid).child("joinUserKey").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -315,6 +324,7 @@ public class UploadService extends Service{
         message.put("photo",currentPhoto);
         message.put("time", formattedDate);
         message.put("key", currentUid);
+
         ChatReference.push().setValue(message);
     }
 

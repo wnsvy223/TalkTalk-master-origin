@@ -99,6 +99,7 @@ public class ChatActivity extends AppCompatActivity {
     private DatabaseReference mChatReference;
     private DatabaseReference mRootRef;
     private DatabaseReference FriendChatRoom;
+    private DatabaseReference mUsersDatabase;
     private ProgressBar uploadProgress;
     private TextView progressStatus;
     private TextView sendImage;
@@ -113,6 +114,7 @@ public class ChatActivity extends AppCompatActivity {
     public ArrayList<String> unReadUserList;
     private ChildEventListener chatMessageListener;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,6 +122,7 @@ public class ChatActivity extends AppCompatActivity {
 
         actionBar = getSupportActionBar();
         actionBar.setBackgroundDrawable(new ColorDrawable(0xFF22CEF1));
+
         mContext = this;
 
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
@@ -145,6 +148,7 @@ public class ChatActivity extends AppCompatActivity {
 
         database = FirebaseDatabase.getInstance();
         FriendChatRoom = FirebaseDatabase.getInstance().getReference("friendChatRoom");
+        mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("users");
 
         SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE); //유저정보 저장된 프레퍼런스
         currentUid = sharedPreferences.getString("uid", "");
@@ -334,7 +338,7 @@ public class ChatActivity extends AppCompatActivity {
                             }
                         });
                     }
-                }else{
+                }else{ // unReadUserList가 null인 경우 = 1:1채팅
                     // 1:1채팅은 해당 메시지에 직접 seen값 변경
                     String messageId = chat.getMessageID();
                     Log.d("로그",messageId);
@@ -350,8 +354,7 @@ public class ChatActivity extends AppCompatActivity {
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Chat chat = dataSnapshot.getValue(Chat.class);
                 mChatAdapter.updateItem(chat);
-                //List<String> messageId  = chat.getUnReadUserList();
-                //Log.d("메시지리로드", String.valueOf(messageId));
+                // 변경된 카운트값으로 어댑터 갱신
             }
 
             @Override
@@ -700,6 +703,8 @@ public class ChatActivity extends AppCompatActivity {
             intent.putExtra("progressText", "사진 전송중");
             intent.putExtra("uri",data.getData());
             intent.putExtra("room",FriendChatUid);
+            intent.putExtra("unReadUserList",unReadUserList);
+            intent.putExtra("unReadCount",unReadUserList.size());
             startService(intent); // 갤러리로 부터 받은 데이터들과 각 타입 구분 String 값을 업로드 서비스 클래스에 전달 및 실행
         } else if (requestCode == UPLOAD_REQUEST_CODE_VIDEO && resultCode == RESULT_OK) { // 동영상 업로드
             //동영상 업로드 백그라운드 서비스 시작
@@ -710,6 +715,8 @@ public class ChatActivity extends AppCompatActivity {
             intent.putExtra("progressText", "동영상 전송중");
             intent.putExtra("uri",data.getData());
             intent.putExtra("room",FriendChatUid);
+            intent.putExtra("unReadUserList",unReadUserList);
+            intent.putExtra("unReadCount",unReadUserList.size());
             startService(intent);  // 갤러리로 부터 받은 데이터들과 각 타입 구분 String 값을 업로드 서비스 클래스에 전달 및 실행
         } else if (requestCode == ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE) { // 화면 매니저 권한
             if (!Settings.canDrawOverlays(this)) {
@@ -726,7 +733,7 @@ public class ChatActivity extends AppCompatActivity {
         String chat_user_ref = "oneToOneMessage/" + FriendChatUid + "/" + currentUid;
         mChatReference = database.getReference("oneToOneMessage");
         String push_id = mChatReference.getKey();
-        String messagId = mChatReference.push().getKey();
+        String messageId = mChatReference.push().getKey();
 
         HashMap message = new HashMap();
         message.put("name", currentName);
@@ -737,7 +744,7 @@ public class ChatActivity extends AppCompatActivity {
         message.put("photo", currentPhoto);
         message.put("time", formattedDate);
         message.put("seen", false);
-        message.put("messageID",messagId);
+        message.put("messageID",messageId);
 
 
         HashMap messageUserMap = new HashMap();
@@ -748,17 +755,16 @@ public class ChatActivity extends AppCompatActivity {
         mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("seen").setValue(false);
         mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("timestamp").setValue(formattedDate);
         mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("Roomtype").setValue("OneToOne");
-        mChatReference.child(currentUid).child(FriendChatUid).child(messagId).setValue(message);
+        mChatReference.child(currentUid).child(FriendChatUid).child(messageId).setValue(message);
 
         mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("seen").setValue(false);
         mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("timestamp").setValue(formattedDate);
         mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("Roomtype").setValue("OneToOne");
-        mChatReference.child(FriendChatUid).child(currentUid).child(messagId).setValue(message);
+        mChatReference.child(FriendChatUid).child(currentUid).child(messageId).setValue(message);
 
         // 해당유저와 1:1채팅 메시지를 전송하면 해당유저와의 대화창 목록을
         // FriendChatRoom노드에 추가해서 리스트에 표시되도록 하는 형태.
 
-        Log.d("테스트",  FriendChatUid);
         FriendChatRoom.child(FriendChatUid).child(currentUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -878,7 +884,7 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void resetTimeStamp(String key) { // 타임스탬프 시간값 최신값으로 재세팅 함수
+    private void resetTimeStamp(String key) { // 타임스탬프 시간값 최신값으로 Reset 함수
         FriendChatRoom
                 .child(key)
                 .child(FriendChatUid)
@@ -889,19 +895,29 @@ public class ChatActivity extends AppCompatActivity {
     private void setActionbarTitle(){
         if(!TextUtils.isEmpty(OpenChatRoom)){
             actionBar.setTitle("공개채팅");
-        }else {
+        }else if(FriendChatUid.contains("Group@")){
             FriendChatRoom.child(currentUid)
                     .child(FriendChatUid)
                     .child("join").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (FriendChatUid.contains("Group@")) {
-                        long count = dataSnapshot.getChildrenCount();
-                        actionBar.setTitle("그룹채팅" + count);
-                        //카운트값을 받아와서 액션바에 세팅. join 노드의 하위요소 카운트값(참가인원 수)이므로 인원변경 시 변경값으로 자동세팅
-                    } else {
-                        actionBar.setTitle("1:1채팅");
-                    }
+                    long count = dataSnapshot.getChildrenCount();
+                    actionBar.setTitle("그룹채팅" + count);
+                    // 카운트값을 받아와서 액션바에 세팅. join 노드의 하위요소 카운트값(참가인원 수)이므로 인원변경 시 변경값으로 자동세팅
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }else{
+            mUsersDatabase.child(FriendChatUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    String name = dataSnapshot.child("name").getValue().toString();
+                    actionBar.setTitle(name);
+                    // 1:1 채팅은 상대방 이름 액션바에 표시
                 }
 
                 @Override

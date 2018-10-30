@@ -773,7 +773,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         message.put("key","System");
         message.put("unReadCount", 0);
         message.put("unReadUserList", null);
-        message.put("messageID",messageID );
+        message.put("messageID", messageID);
         mSystemMessageDatabase.child(messageID).setValue(message);
     }
 

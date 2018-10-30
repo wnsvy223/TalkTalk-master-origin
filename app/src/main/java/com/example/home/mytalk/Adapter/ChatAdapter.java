@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.v7.app.AlertDialog;
@@ -144,6 +145,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
             holder.tvName.setText(ID);
             String stPhoto = mChat.get(holder.getAdapterPosition()).getPhoto();
 
+            holder.tvUnRead.setTypeface(holder.tvUnRead.getTypeface(), Typeface.BOLD);
             // 그룹채팅 메시지읽음 표시
             if(!mChat.get(holder.getAdapterPosition()).getText().equals("System")) {
                 int unReadCount = mChat.get(holder.getAdapterPosition()).getUnReadCount();
