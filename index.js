@@ -36,19 +36,23 @@ exports.sendNotification = functions.database.ref('/notification/{user_id}/{noti
          const userPhoto = result[2].val();
          
 
-         var payload = {
+            var payload = {
 
-            data: {   
-                tag : 'contact',      
-                from_user_id : from_user_id,
-                title : "친구 요청",
-                body : `${userName} 님이 친구요청을 보냈습니다.`,
-                userPhoto : `${userPhoto}`,
-                click_action : "com.example.home.mytalk_TARGET_NOTIFICATION" 
-                }
-            };
+                data: {   
+                    tag : 'contact',      
+                    from_user_id : from_user_id,
+                    title : "친구 요청",
+                    body : `${userName} 님이 친구요청을 보냈습니다.`,
+                    userPhoto : `${userPhoto}`,
+                    click_action : "com.example.home.mytalk_TARGET_NOTIFICATION" 
+                    }
+                };
 
-                return admin.messaging().sendToDevice(token_id , payload).then(response =>{
+            var options = {
+                priority: "high"
+            }
+
+                return admin.messaging().sendToDevice(token_id , payload, options).then(response =>{
                     return console.log('This was the Notification');
                 });
         
@@ -105,27 +109,40 @@ exports.sendNotification = functions.database.ref('/notification/{user_id}/{noti
                         click_action_message : "com.example.home.mytalk_Message_NOTIFICATION" 
                         }
                 };
+                var options = {
+                    priority: "high"
+                }
 
-                return admin.messaging().sendToDevice(Token , payload).then(response =>{
-                        return console.log('데이터 필드값 :',user_name,Token,user_photo,message,one_room);
+                return admin.messaging().sendToDevice(Token , payload, options).then(response =>{
+                        return console.log('데이터 필드값 :',user_name,Token,user_photo,message,one_room,TokenSender);
                 });
             });
         });
     });
 
-    exports.groupChatNotification = functions.database.ref('/groupMessage/{room}').onWrite((snap,context) =>{
+    exports.groupChatNotification = functions.database.ref('/groupMessage/{room}/{messageKey}').onCreate((snap,context) =>{
+    // onWrite의 경우 읽음표시 기능이 활성화될때 childChanged함수 호출로 데이터 변경될때도 푸시가 호출되어 
+    // oncreate로 변경 및 참조위치 messageKey노드 추가하여 메시지 노드가 생성 될때만 푸시 
     
+    /*
         var lastChild;
         snap.after.forEach(function(child){
             lastChild = child;
         }); 
 
-       
         const room = context.params.room; //그룹방 이름
         const name = lastChild.child('name').val();
         const photoUrl = lastChild.child('photo').val();
         const key = lastChild.child('key').val();
         const message = lastChild.child('text').val();
+        const senderToken = admin.database().ref(`/users/${key}/deviceToken`).once('value');
+        const joinUser = admin.database().ref(`/friendChatRoom/${key}/${room}/joinUserKey`).once('value');
+    */
+        const room = context.params.room; //그룹방 이름
+        const name = snap.child('name').val();
+        const photoUrl = snap.child('photo').val();
+        const key = snap.child('key').val();
+        const message = snap.child('text').val();
         const senderToken = admin.database().ref(`/users/${key}/deviceToken`).once('value');
         const joinUser = admin.database().ref(`/friendChatRoom/${key}/${room}/joinUserKey`).once('value');
 
@@ -164,11 +181,15 @@ exports.sendNotification = functions.database.ref('/notification/{user_id}/{noti
                                     gmessage : group_message,
                                     guserPhotoImage : `${group_user_photo}`,
                                     gclick_action_message : "com.example.home.mytalk_Message_NOTIFICATION" 
-                                    }
+                                    },
                             };
+
+                            var options = {
+                                priority: "high"
+                            }
             
-                            return admin.messaging().sendToDevice(group_user_token , payload).then(response =>{
-                                return console.log('보낸사람토큰:',group_sender_Token,'토큰값:',group_user_token,'이름:',group_user_name,'사진:',group_user_photo,'메시지:',group_message);
+                            return admin.messaging().sendToDevice(group_user_token , payload, options).then(response =>{
+                               return console.log('보낸사람토큰:',group_sender_Token,'토큰값:',group_user_token,'이름:',group_user_name,'사진:',group_user_photo,'메시지:',group_message);
 
                             });
                         });
