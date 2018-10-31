@@ -201,8 +201,13 @@ public class TabActivity extends AppCompatActivity{
 
         Intent intent = getIntent();
         String contactRequest = intent.getStringExtra("FriendChatUid");
+        String isPush = intent.getStringExtra("isPush");
         if(!TextUtils.isEmpty(contactRequest)){
             mViewPager.setCurrentItem(1); // 친추요청 푸시메시지를 통해 탭액티비티로 들어오면 친구목록 탭으로 이동
+        }else if(!TextUtils.isEmpty(isPush)){
+            mViewPager.setCurrentItem(2); // 채팅메시지 푸시를 통해 탭액티비티로 들어오면 채팅목록 탭으로 이동
+        }else{
+            mViewPager.setCurrentItem(0); // 나머지의 경우는 맨 처음 탭으로 이동
         }
     }
 

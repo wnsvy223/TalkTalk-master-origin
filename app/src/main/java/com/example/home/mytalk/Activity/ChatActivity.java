@@ -86,6 +86,7 @@ public class ChatActivity extends AppCompatActivity {
     private String currentName;
     private String currentPhoto;
     public String formattedDate;
+    private String myKey;
     public SharedPreferences sharedPreferences_img;
     public ImageAdapter imageAdapter;
     private static int Set_position;
@@ -122,9 +123,7 @@ public class ChatActivity extends AppCompatActivity {
 
         actionBar = getSupportActionBar();
         actionBar.setBackgroundDrawable(new ColorDrawable(0xFF22CEF1));
-
         mContext = this;
-
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         mRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(this);
@@ -158,12 +157,18 @@ public class ChatActivity extends AppCompatActivity {
         Intent intent = getIntent();
         OpenChatRoom = intent.getStringExtra("OpenChat"); //공개방으로 부터 생성된 채팅액티비티
         FriendChatUid = intent.getStringExtra("FriendChatUid"); //1:1 또는 그룹 채팅방으로 부터 생성된 채팅액티비티
-        unReadUserList = intent.getStringArrayListExtra("unReadUserList");
 
-        String MyKey = intent.getStringExtra("MyKey");
-        if (MyKey != null) {
-            currentUid = MyKey;
-        } //푸시 메시지를 클릭해서 생성된 채팅 액티비티이면 푸시메시지로부터 넘어온 Uid정보로 화면 생성
+        if(unReadUserList == null) {
+            getUnReadUserList(); // 푸시를 통해 채팅방 넘어올때는 DB에서 받아온 리스트
+        }else{
+            unReadUserList = intent.getStringArrayListExtra("unReadUserList"); // 탭에서 채팅방 클릭으로 넘어올때는 인탠트로 넘어온 리스트
+        }
+
+        myKey = intent.getStringExtra("MyKey");
+        if (myKey != null) {
+            currentUid = myKey; //푸시 메시지를 클릭해서 생성된 채팅 액티비티이면 푸시메시지로부터 넘어온 Uid 정보로 화면 생성
+            initBadgeCount(); // 푸시메시지를 통해 액티비티 진입시 배지 리셋
+        }
 
         if(switchStatus){
             locationSwitch.setChecked(true);
@@ -409,6 +414,29 @@ public class ChatActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    public void initBadgeCount(){
+        FriendChatRoom.child(currentUid).child(FriendChatUid).child("badgeCount").setValue(0);
+    }
+
+
+    public void getUnReadUserList(){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("friendChatRoom").child(currentUid).child(FriendChatUid).child("joinUserKey");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<String> unReadUser = (List<String>) dataSnapshot.getValue();
+                unReadUserList = (ArrayList<String>) unReadUser;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+
     private void searchConversation(SearchView searchView){
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -628,7 +656,14 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        this.finish();
+        if(myKey == null) {
+            this.finish(); // 앱 아이콘 클릭으로 생성된 액티비티일경우(푸시로넘어온 myKey값이 null) 액티비티 종료
+        }else{
+            Intent intent = new Intent(getApplicationContext(),TabActivity.class);  // 푸시로 넘어온 액티비티일 경우 탭액티비티로 이동.
+            intent.putExtra("isPush", "true");
+            startActivity(intent);
+            this.finish();
+        }
     }
 
 

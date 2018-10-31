@@ -1,5 +1,7 @@
 package com.example.home.mytalk.Model;
 
+import java.security.PrivateKey;
+
 /**
  * Created by Home on 2017-03-16.
  */
@@ -18,9 +20,9 @@ public class Friend{
     private String name;
     private String phone;
     private boolean isCheck;
+    private String deviceToken;
 
-
-    public Friend(String email, String photo, String key, String state, String latitude, String longitude, String accept, boolean isCheck, String name, String phone) {
+    public Friend(String email, String photo, String key, String state, String latitude, String longitude, String accept, boolean isCheck, String name, String phone,String deviceToken) {
         this.email = email;
         this.photo = photo;
         this.key = key;
@@ -31,6 +33,7 @@ public class Friend{
         this.isCheck = isCheck;
         this.name = name;
         this.phone = phone;
+        this.deviceToken = deviceToken;
     }
 
     public Friend() {
@@ -118,5 +121,13 @@ public class Friend{
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getDeviceToken() {
+        return deviceToken;
+    }
+
+    public void setDeviceToken(String deviceToken) {
+        this.deviceToken = deviceToken;
     }
 }

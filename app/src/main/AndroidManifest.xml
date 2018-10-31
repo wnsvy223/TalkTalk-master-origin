@@ -41,7 +41,8 @@
         </activity>
         <activity
             android:name=".Activity.MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize" />
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="stateHidden|adjustResize"/>
         <activity
             android:name=".Activity.ChatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -124,6 +125,7 @@
             android:label="그룹채팅초대" />
         <activity
             android:name=".Activity.FullScreenActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="사진 메시지" />
         <activity
             android:name=".Activity.VideoViewActivity"
