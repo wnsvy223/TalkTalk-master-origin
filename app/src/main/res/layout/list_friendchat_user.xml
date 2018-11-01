@@ -60,31 +60,25 @@
         android:layout_below="@+id/frameLayout7" />
 
     <FrameLayout
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginEnd="26dp"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
         android:id="@+id/frameLayout7"
         android:layout_alignBottom="@+id/user_group_name"
         android:layout_marginBottom="5dp"
         android:layout_alignParentEnd="true">
 
-        <ImageView
-            android:id="@+id/badgebackground"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible"
-            android:background="@drawable/roundbackground"/>
-        <!--:visibility="invisible"-->
 
         <TextView
             android:id="@+id/badgecount"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:background="@drawable/circle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:layout_gravity="center"
             android:gravity="center"
-            android:text="c"
             android:visibility="invisible"
-            android:textColor="#FFFFFF"
-            android:textSize="14dp"
+            android:textColor="@color/white"
+            android:textSize="12sp"
              />
 
     </FrameLayout>

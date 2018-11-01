@@ -98,29 +98,27 @@
         android:layout_alignTop="@+id/user_single_online_icon"
         android:layout_toStartOf="@+id/time_stamp" />
 
-    <FrameLayout
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginEnd="27dp"
-        android:layout_alignTop="@+id/textUserNum"
-        android:layout_alignParentEnd="true">
 
-        <ImageView
-            android:id="@+id/badgebackground"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible"
-            android:background="@drawable/roundbackground"/>
+    <FrameLayout
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/user_single_image1">
 
         <TextView
             android:id="@+id/badgecount"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="c"
-            android:textColor="#FFFFFF"
-            android:textSize="14dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/circle"
+            android:maxLines="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textColor="@color/white"
             android:visibility="invisible"
-            android:gravity="center"/>
+            android:textSize="12sp" />
+
     </FrameLayout>
+
+
 
 </RelativeLayout>

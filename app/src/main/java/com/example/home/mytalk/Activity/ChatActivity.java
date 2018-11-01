@@ -267,6 +267,7 @@ public class ChatActivity extends AppCompatActivity {
                                     String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 아래 채팅노드 키값
                                     String topKey = keyList.get(topPosition); //현재 화면의 맨 위 채팅노드 키값
                                     loadMoreMessage(mChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
+
                                 } else if ((keyList.size()) != totalItemCount && ((totalItemCount - keyList.size())) < 10) {
                                     //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
                                     String lastBottomKey = keyList.get(totalItemCount);
@@ -316,6 +317,7 @@ public class ChatActivity extends AppCompatActivity {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Chat chat = dataSnapshot.getValue(Chat.class);
                 List<String> unReadUserList = chat.getUnReadUserList();
+
                 if(unReadUserList != null){
                     if(unReadUserList.contains(currentUid)){
                         // firebase Transaction을 이용한 메시지 읽음 표시
@@ -497,6 +499,63 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    private void loadMoreMessage(DatabaseReference databaseReference, String last, String first){
+        //채팅노드 키값으로 정렬하여 인자값으로 받은 시작점, 끝점노드의 키값데이터만 가져와서 리스트에 추가 후
+        //초기 채팅리스트에 추가로딩 채팅리스트 추가
+        //역순으로 조회하기 때문에 최근채팅값 = 마지막데이터값
+
+        databaseReference.orderByKey().startAt(first).endAt(last).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Chat chat = postSnapshot.getValue(Chat.class);
+                    mLoadMoreChat.add(chat);
+
+                    List<String> unReadUserList = chat.getUnReadUserList();
+                    if(unReadUserList != null) {
+                        if (unReadUserList.contains(currentUid)) {
+                            dataSnapshot.getRef().child(chat.getMessageID()).runTransaction(new Transaction.Handler() {
+                                @Override
+                                public Transaction.Result doTransaction(MutableData mutableData) {
+                                    Chat mutableChat = mutableData.getValue(Chat.class);
+                                    List <String> mutableUnReadUserList = mutableChat.getUnReadUserList();
+                                    mutableUnReadUserList.remove(currentUid);
+                                    int mutableUnreadCount = mutableChat.getUnReadUserList().size();
+
+                                    Chat mutable = mutableData.getValue(Chat.class);
+                                    mutable.setUnReadUserList(mutableUnReadUserList);
+                                    mutable.setUnReadCount(mutableUnreadCount);
+                                    mutableData.setValue(mutable);
+
+                                    return Transaction.success(mutableData);
+                                }
+
+                                @Override
+                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                                }
+                            });
+                        }
+                    }else{ // unReadUserList가 null인 경우 = 1:1채팅
+                        // 1:1채팅은 해당 메시지에 직접 seen값 변경
+                        String messageId = chat.getMessageID();
+                        Log.d("로그",messageId);
+                        database.getReference("oneToOneMessage").child(FriendChatUid).child(currentUid).child(messageId).child("seen").setValue(true);
+                    }
+                }
+                mChat.addAll(0,mLoadMoreChat); //addAll 인덱스0으로 주면 앞에 추가
+                mChatAdapter.notifyDataSetChanged();
+                mRecyclerView.scrollToPosition(mLoadMoreChat.size() + 5);
+                mLoadMoreChat.clear(); //사용된 추가목록 리스트는 초기 리스트에 추가한 후 다음 목록 추가를 위해 비움.
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private void loadSearchMessage(String searchQueryKey, String searchString){
         //getSearchResult에서 넘어온 채팅노드의 키값 searchQuery로 시작하는 채팅목록을 불러와서
         //리스트 비운 뒤 검색어로 검색된 부분부터 시작되는 채팅노드값을 불러와서 리스트에 추가 후 그 리스트를가지고 어댑터 세팅
@@ -525,30 +584,7 @@ public class ChatActivity extends AppCompatActivity {
         //어댑터에서 인자값을 비교하여 해당 검색된 메시지는 컬러 변경
     }
 
-    private void loadMoreMessage(DatabaseReference databaseReference, String last, String first){
-        //채팅노드 키값으로 정렬하여 인자값으로 받은 시작점, 끝점노드의 키값데이터만 가져와서 리스트에 추가 후
-        //초기 채팅리스트에 추가로딩 채팅리스트 추가
-        //역순으로 조회하기 때문에 최근채팅값 = 마지막데이터값
 
-        databaseReference.orderByKey().startAt(first).endAt(last).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    Chat chat = postSnapshot.getValue(Chat.class);
-                    mLoadMoreChat.add(chat);
-                }
-                mChat.addAll(0,mLoadMoreChat); //addAll 인덱스0으로 주면 앞에 추가
-                mChatAdapter.notifyDataSetChanged();
-                mRecyclerView.scrollToPosition(mLoadMoreChat.size());//추가 로딩됨과 동시에 화면에 표시되는 목록 위치는 추가된 목록의 맨아래 위치로
-                mLoadMoreChat.clear(); //사용된 추가목록 리스트는 초기 리스트에 추가한 후 다음 목록 추가를 위해 비움.
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
 
     private void goSendFile() {
         buttonSendFile.setOnClickListener(new View.OnClickListener() {

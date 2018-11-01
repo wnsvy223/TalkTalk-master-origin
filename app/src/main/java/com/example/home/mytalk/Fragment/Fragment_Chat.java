@@ -707,11 +707,8 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         }
 
         public void setBadgeCount(String count){
-            ImageView back = (ImageView) mView.findViewById(R.id.badgebackground);
             TextView badgeCount = (TextView) mView.findViewById(R.id.badgecount);
-
             if(!count.equals("0")) {
-                back.setVisibility(View.VISIBLE);
                 badgeCount.setVisibility(View.VISIBLE);
                 badgeCount.setText(count);
             }
