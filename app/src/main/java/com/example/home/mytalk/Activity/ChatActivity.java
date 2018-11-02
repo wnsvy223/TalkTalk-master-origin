@@ -114,7 +114,7 @@ public class ChatActivity extends AppCompatActivity {
     private Query query;
     public ArrayList<String> unReadUserList;
     private ChildEventListener chatMessageListener;
-
+    private ChildEventListener allChatMessageListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -312,46 +312,10 @@ public class ChatActivity extends AppCompatActivity {
             }
         }
         chatMessageListener =  mChatDisplayReference.limitToLast(15).addChildEventListener(new ChildEventListener() {
-            //최근채팅15개 조회
+            // 최근채팅15개 조회
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Chat chat = dataSnapshot.getValue(Chat.class);
-                List<String> unReadUserList = chat.getUnReadUserList();
-
-                if(unReadUserList != null){
-                    if(unReadUserList.contains(currentUid)){
-                        // firebase Transaction을 이용한 메시지 읽음 표시
-                        // 각 메시지 노드마다 unReadCount 와 unReadUserList를 두어 메시지를 읽으러 액티비티로 들어왔을 때
-                        // unReaUserList에서 해당 유저의 키값 삭제 & unReadCount = 리스트사이즈
-                        dataSnapshot.getRef().runTransaction(new Transaction.Handler() {
-                            @Override
-                            public Transaction.Result doTransaction(MutableData mutableData) {
-                                Chat mutableChat = mutableData.getValue(Chat.class);
-                                List <String> mutableUnReadUserList = mutableChat.getUnReadUserList();
-                                mutableUnReadUserList.remove(currentUid);
-                                int mutableUnreadCount = mutableChat.getUnReadUserList().size();
-
-                                Chat mutable = mutableData.getValue(Chat.class);
-                                mutable.setUnReadUserList(mutableUnReadUserList);
-                                mutable.setUnReadCount(mutableUnreadCount);
-                                mutableData.setValue(mutable);
-
-                                return Transaction.success(mutableData);
-                            }
-
-                            @Override
-                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
-                            }
-                        });
-                    }
-                }else{ // unReadUserList가 null인 경우 = 1:1채팅
-                    // 1:1채팅은 해당 메시지에 직접 seen값 변경
-                    String messageId = chat.getMessageID();
-                    Log.d("로그",messageId);
-                    database.getReference("oneToOneMessage").child(FriendChatUid).child(currentUid).child(messageId).child("seen").setValue(true);
-                }
-
                 mChat.add(chat);
                 mRecyclerView.scrollToPosition(mChat.size() - 1);
                 mChatAdapter.notifyItemInserted(mChat.size() - 1);
@@ -379,11 +343,12 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
-
+        readAllMessage(); // 읽지 않은 메시지 모두 읽음 처리
         mChat = new ArrayList<>(); //채팅 목록(그룹채팅 액티비티 진입 후 돌아오면 Resume에서 다시 그려줘야됨)
         mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
         mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null,FriendChatUid);
         mRecyclerView.setAdapter(mChatAdapter);
+
 
      /*
         if(Set_position != -1){
@@ -393,10 +358,12 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
+
     @Override
     protected void onPause() {
         super.onPause();
 
+        mChatDisplayReference.removeEventListener(allChatMessageListener);
         mChatDisplayReference.removeEventListener(chatMessageListener);
         // 채팅액티비티 나가면 읽음표시 트랜잭션이 비활성화 되어야 하므로 리스너 제거
         // onResume에서 다시 리스너 생성
@@ -414,6 +381,71 @@ public class ChatActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences_img.edit();
         editor.putInt("img_set", Set_position);
         editor.apply();
+    }
+
+    private void readAllMessage(){
+        // 읽지 않은 모든 메시지 읽음 처리
+        allChatMessageListener = mChatDisplayReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Chat chat = dataSnapshot.getValue(Chat.class);
+                // firebase Transaction을 이용한 메시지 읽음 표시
+                // 각 메시지 노드마다 unReadCount 와 unReadUserList를 두어 메시지를 읽으러 액티비티로 들어왔을 때
+                // unReaUserList에서 해당 유저의 키값 삭제 & unReadCount = 리스트사이즈
+                List<String> unReadUserList = chat.getUnReadUserList();
+                if(unReadUserList != null){
+                    if(unReadUserList.contains(currentUid)){
+                        dataSnapshot.getRef().runTransaction(new Transaction.Handler() {
+                            @Override
+                            public Transaction.Result doTransaction(MutableData mutableData) {
+                                Chat mutableChat = mutableData.getValue(Chat.class);
+                                List <String> mutableUnReadUserList = mutableChat.getUnReadUserList();
+                                mutableUnReadUserList.remove(currentUid);
+                                int mutableUnreadCount = mutableChat.getUnReadUserList().size();
+
+                                Chat mutable = mutableData.getValue(Chat.class);
+                                mutable.setUnReadUserList(mutableUnReadUserList);
+                                mutable.setUnReadCount(mutableUnreadCount);
+                                mutableData.setValue(mutable);
+
+                                return Transaction.success(mutableData);
+                            }
+
+                            @Override
+                            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
+
+                            }
+                        });
+                    }
+                }else{ // unReadUserList가 null인 경우 = 1:1채팅
+                    String messageId = chat.getMessageID();
+                    Log.d("로그",messageId);
+                    database.getReference("oneToOneMessage").child(FriendChatUid).child(currentUid).child(messageId).child("seen").setValue(true);
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Chat chat = dataSnapshot.getValue(Chat.class);
+                mChatAdapter.updateItem(chat);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void initBadgeCount(){
@@ -510,38 +542,6 @@ public class ChatActivity extends AppCompatActivity {
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Chat chat = postSnapshot.getValue(Chat.class);
                     mLoadMoreChat.add(chat);
-
-                    List<String> unReadUserList = chat.getUnReadUserList();
-                    if(unReadUserList != null) {
-                        if (unReadUserList.contains(currentUid)) {
-                            dataSnapshot.getRef().child(chat.getMessageID()).runTransaction(new Transaction.Handler() {
-                                @Override
-                                public Transaction.Result doTransaction(MutableData mutableData) {
-                                    Chat mutableChat = mutableData.getValue(Chat.class);
-                                    List <String> mutableUnReadUserList = mutableChat.getUnReadUserList();
-                                    mutableUnReadUserList.remove(currentUid);
-                                    int mutableUnreadCount = mutableChat.getUnReadUserList().size();
-
-                                    Chat mutable = mutableData.getValue(Chat.class);
-                                    mutable.setUnReadUserList(mutableUnReadUserList);
-                                    mutable.setUnReadCount(mutableUnreadCount);
-                                    mutableData.setValue(mutable);
-
-                                    return Transaction.success(mutableData);
-                                }
-
-                                @Override
-                                public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
-
-                                }
-                            });
-                        }
-                    }else{ // unReadUserList가 null인 경우 = 1:1채팅
-                        // 1:1채팅은 해당 메시지에 직접 seen값 변경
-                        String messageId = chat.getMessageID();
-                        Log.d("로그",messageId);
-                        database.getReference("oneToOneMessage").child(FriendChatUid).child(currentUid).child(messageId).child("seen").setValue(true);
-                    }
                 }
                 mChat.addAll(0,mLoadMoreChat); //addAll 인덱스0으로 주면 앞에 추가
                 mChatAdapter.notifyDataSetChanged();
