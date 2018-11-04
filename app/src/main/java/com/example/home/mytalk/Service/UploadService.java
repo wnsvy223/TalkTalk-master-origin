@@ -76,7 +76,6 @@ public class UploadService extends Service{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) { //startService 로 서비스 호출시 이 함수를 탐
-
         String path = intent.getStringExtra("storagePath");
         String fileType = intent.getStringExtra("fileType");
         String  messageType = intent.getStringExtra("messageType");
@@ -97,7 +96,6 @@ public class UploadService extends Service{
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
         String formattedDate = simpleDateFormat.format(calendar.getTime());
 
-        //Uri imageUri = data.getData();
         uploadTask = FirebaseStorage.getInstance().getReference()
                 .child(storagePath).child(currentUid + "/" + formattedDate + fileType).putFile(imageUri);
 
@@ -135,7 +133,7 @@ public class UploadService extends Service{
         }).addOnFailureListener(new OnFailureListener() { //실패하면 프로그래스바와 텍스트 뷰 제거와 동시에 실패 토스트메시지 출력
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(getApplicationContext(), "전송 실패", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "전송 실패"+e, Toast.LENGTH_LONG).show();
                 progressStatus.setVisibility(View.GONE);
                 uploadProgress.setVisibility(View.GONE);
             }

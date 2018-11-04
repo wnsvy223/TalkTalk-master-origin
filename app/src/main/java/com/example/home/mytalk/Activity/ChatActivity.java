@@ -4,6 +4,8 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
@@ -56,6 +58,10 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -774,8 +780,10 @@ public class ChatActivity extends AppCompatActivity {
             intent.putExtra("progressText", "사진 전송중");
             intent.putExtra("uri",data.getData());
             intent.putExtra("room",FriendChatUid);
-            intent.putExtra("unReadUserList",unReadUserList);
-            intent.putExtra("unReadCount",unReadUserList.size());
+            if(FriendChatUid.contains("Group@")){
+                intent.putExtra("unReadUserList",unReadUserList);
+                intent.putExtra("unReadCount",unReadUserList.size());
+            }
             startService(intent); // 갤러리로 부터 받은 데이터들과 각 타입 구분 String 값을 업로드 서비스 클래스에 전달 및 실행
         } else if (requestCode == UPLOAD_REQUEST_CODE_VIDEO && resultCode == RESULT_OK) { // 동영상 업로드
             //동영상 업로드 백그라운드 서비스 시작
@@ -786,8 +794,10 @@ public class ChatActivity extends AppCompatActivity {
             intent.putExtra("progressText", "동영상 전송중");
             intent.putExtra("uri",data.getData());
             intent.putExtra("room",FriendChatUid);
-            intent.putExtra("unReadUserList",unReadUserList);
-            intent.putExtra("unReadCount",unReadUserList.size());
+            if(FriendChatUid.contains("Group@")){
+                intent.putExtra("unReadUserList",unReadUserList);
+                intent.putExtra("unReadCount",unReadUserList.size());
+            }
             startService(intent);  // 갤러리로 부터 받은 데이터들과 각 타입 구분 String 값을 업로드 서비스 클래스에 전달 및 실행
         } else if (requestCode == ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE) { // 화면 매니저 권한
             if (!Settings.canDrawOverlays(this)) {
