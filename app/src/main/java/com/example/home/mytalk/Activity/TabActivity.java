@@ -218,7 +218,7 @@ public class TabActivity extends AppCompatActivity{
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
         notificationManagerCompat.cancelAll(); //탭 화면 생성되면 날아와있던 노티들 삭제.
 
-        Set_On(); //로그인
+        //Set_On(); //로그인
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("friendChatRoom").child(currentUid);
         databaseReference.addValueEventListener(new ValueEventListener() {
@@ -361,8 +361,8 @@ public class TabActivity extends AppCompatActivity{
     }
 
     public void Set_Off() {
-        String Offline = "접속종료";
-        databaseReference.child(currentUid).child("state").setValue(Offline); //DB에서의 명시적 로그아웃 상태 세팅.
+        //String Offline = "접속종료";
+        //databaseReference.child(currentUid).child("state").setValue(Offline); //DB에서의 명시적 로그아웃 상태 세팅.
         mAuth.signOut(); //Firebase 유저 상태 모니터링 리스너를 이용한 암묵적 로그아웃상태 세팅.
     }
 

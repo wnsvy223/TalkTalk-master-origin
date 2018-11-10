@@ -38,7 +38,7 @@ public class LogOutTaskService extends Service {
                 user = firebaseAuth.getCurrentUser();
             }
         };
-        databaseReference.child(currentUid).child("state").setValue("접속종료"); //DB에서의 명시적 로그아웃 상태 세팅.
+        //databaseReference.child(currentUid).child("state").setValue("접속종료"); //DB에서의 명시적 로그아웃 상태 세팅.
         mAuth.signOut(); // Firebase Auth 서비스 로그아웃상태 세팅.
 
         Log.d("강제종료 모니터링 서비스", String.valueOf(user));

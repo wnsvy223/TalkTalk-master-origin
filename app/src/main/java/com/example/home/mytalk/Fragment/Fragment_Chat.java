@@ -1,6 +1,7 @@
 package com.example.home.mytalk.Fragment;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -80,6 +81,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
     public int type;
     private FirebaseRecyclerAdapter<Chat,ChatViewHolder> firebaseConvAdapter;
     public DisplayMetrics metrics;
+
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -264,7 +266,9 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                                 String userName = dataSnapshot.child("name").getValue().toString();
                                 viewHolder.setName(userName);
                                 String userPhoto = dataSnapshot.child("photo").getValue().toString();
-                                viewHolder.setUserImage(userPhoto, getContext());
+                                if(isValidContextForGlide(getContext())) {
+                                    viewHolder.setUserImage(userPhoto, getContext());
+                                }
                             }
                         }
 
@@ -280,8 +284,10 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                             if (dataSnapshot.hasChildren()) {
                                 String joinUserKey = dataSnapshot.getValue().toString();
                                 long count = dataSnapshot.getChildrenCount();
-                                viewHolder.setUserImageGroup(joinUserKey, getContext(), currentUid, count, metrics.densityDpi);
-                                //joinUserKey 노드로 부터 참가자들의 키값을 받아서 setUserImageGroup 메소드에 전달.
+                                if(isValidContextForGlide(getContext())) {
+                                    viewHolder.setUserImageGroup(joinUserKey, getContext(), currentUid, count, metrics.densityDpi);
+                                    //joinUserKey 노드로 부터 참가자들의 키값을 받아서 setUserImageGroup 메소드에 전달.
+                                }
                             }
                         }
 
@@ -478,8 +484,8 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         public void setUserImage(String thumb_image, Context context) {
             if(context != null) {
                 CircleImageView userImageView = (CircleImageView) mView.findViewById(R.id.user_single_image);
-                Glide.clear(userImageView);
-                Glide.get(context).clearMemory();
+                //Glide.clear(userImageView);
+                //Glide.get(context).clearMemory();
                 if (TextUtils.isEmpty(thumb_image)) {
                     Glide.with(context)
                             .load(R.drawable.ic_unknown_user)
@@ -720,8 +726,8 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             databaseReference.child(key).child("photo").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Glide.clear(arrayUserImage[i]);
-                    Glide.get(context).clearMemory();
+                    //Glide.clear(arrayUserImage[i]);
+                    //Glide.get(context).clearMemory();
                     String image = dataSnapshot.getValue().toString();
                     if(TextUtils.isEmpty(image)){
                         Glide.with(context)
@@ -839,6 +845,19 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             }
         }); //내가 참가했던 해당 채팅방 리스트 및 노드 삭제.(= 난 채팅방을 나갔기때문에 리스트와 데이터베이스 노드가 삭제되야함)
 
+    }
+
+    public static boolean isValidContextForGlide(final Context context) {
+        if (context == null) {
+            return false;
+        }
+        if (context instanceof Activity) {
+            final Activity activity = (Activity) context;
+            if (activity.isDestroyed() || activity.isFinishing()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
