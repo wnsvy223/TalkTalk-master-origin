@@ -13,6 +13,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.example.home.mytalk.Adapter.GroupChatAdapter;
 import com.example.home.mytalk.Model.Friend;
@@ -129,15 +130,15 @@ public class GroupChatActivity extends AppCompatActivity {
 
             int id = item.getItemId();
             if (id == R.id.action_button_ok) {
-                final List<String> checkUser = new ArrayList<>();
-                final List<String> checkPhoto = new ArrayList<>();
-                final List<String> checkKey = new ArrayList<>();
+                List<String> checkUser = new ArrayList<>();
+                List<String> checkPhoto = new ArrayList<>();
+                List<String> checkKey = new ArrayList<>();
                 checkUser.add(currentUserName);
                 checkKey.add(currentUid);
                 checkPhoto.add(currentUserPhoto);
                 //리스트 생성과 동시에 현재접속자의 정보는 리스트에 삽입.
-                mFriend = gAdapter.getFriendList();
-                for (int i = 0; i < mFriend.size(); i++) {
+                mFriend = gAdapter.getFriendList(); // 어댑터로부터 넘겨받은 체크된 유저 목록.
+                for (int i = 0; i < mFriend.size(); i++) { // 어댑터로부터 넘겨받은 참가자 목록 인덱스 값은 0부터 시작됨. 따라서 순회시 인덱스값은 사이즈 그대로.
                     Friend friend = mFriend.get(i);
                     if (friend.isCheck()) {
                         checkUser.add(friend.getName());
@@ -157,8 +158,8 @@ public class GroupChatActivity extends AppCompatActivity {
                     default:
                         inviteUserNum = String.valueOf(checkKey.size()) + "People";
                 }
-                for (int i = 0; i < checkKey.size()-1; i++) {
-
+                for (int i = 0; i < checkKey.size(); i++) {
+                    //checkkey 에는  currentUid가 add된 상태. 따라서 순회시 사이즈-1이 아닌 사이즈값그대로.
                     HashMap checkedUser = new HashMap();
                     //checkedUser.put("seen", false);
                     checkedUser.put("timestamp", formattedDate);
@@ -200,7 +201,6 @@ public class GroupChatActivity extends AppCompatActivity {
                             mRootRef.child("friendChatRoom").child(checkKey.get(i)).child(currentUid).child("Roomtype").setValue("OneToOne");
 
                         }else{ //2인보다 많으면 그룹채팅이므로 그룹채팅 노드 생성
-
                             DatabaseReference GroupReference_Current = FirebaseDatabase.getInstance().getReference().child("friendChatRoom").child(currentUid);
                             GroupReference_Current.child("Group@" + "+" + inviteUserNum + "+" + currentUid + "+" + formattedDate).setValue(checkedUser);
 

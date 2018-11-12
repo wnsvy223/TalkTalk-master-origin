@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
+        android:maxWidth="300dp"
         android:background="@drawable/bubble_green"
         android:textSize="15sp" />
 
