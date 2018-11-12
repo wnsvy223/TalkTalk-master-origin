@@ -78,10 +78,10 @@
 
     <TextView
         android:id="@+id/fab_text_1"
-        android:textColor="@color/white"
+        android:background="@drawable/roundbackground"
         android:textStyle="bold"
         android:gravity="center"
-        android:textSize="15sp"
+        android:textSize="12sp"
         android:layout_width="100dp"
         android:layout_height="30dp"
         android:layout_gravity="end|bottom"
@@ -90,10 +90,10 @@
 
     <TextView
         android:id="@+id/fab_text_2"
-        android:textColor="@color/white"
+        android:background="@drawable/roundbackground"
         android:textStyle="bold"
         android:gravity="center"
-        android:textSize="15sp"
+        android:textSize="12sp"
         android:layout_width="100dp"
         android:layout_height="30dp"
         android:layout_gravity="end|bottom"
