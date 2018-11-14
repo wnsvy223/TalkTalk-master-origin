@@ -141,6 +141,7 @@
         <service
             android:name=".Service.UploadService"/>
 
+        <receiver android:name=".Service.ContactActionReceiver"/>
     </application>
 
 

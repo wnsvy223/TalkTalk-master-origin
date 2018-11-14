@@ -12,15 +12,15 @@
 
     <ImageView
         android:id="@+id/ivUser"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true" />
 
     <TextView
         android:id="@+id/tvEmail"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="40dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="10dp"
@@ -28,10 +28,12 @@
         android:layout_toEndOf="@+id/ivUser"
         android:background="#ffffff"
         android:gravity="center"
-        android:textSize="20sp" />
+        android:textStyle="bold"
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/tvJoinUser"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_marginStart="10dp"
         android:layout_height="wrap_content"
@@ -55,7 +57,7 @@
         android:id="@+id/button_lay"
         android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="40dp"
         android:layout_marginStart="60dp"
         android:layout_gravity="end|center_vertical"
         android:background="#ffffff">
@@ -66,7 +68,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:layout_marginEnd="41dp"
+            android:layout_marginEnd="40dp"
+            android:layout_centerHorizontal="true"
             android:background="@drawable/round"
             android:text="거 절" />
 
@@ -75,8 +78,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginStart="44dp"
+            android:layout_marginStart="40dp"
+            android:layout_centerHorizontal="true"
             android:background="@drawable/round"
             android:text="수 락" />
     </RelativeLayout>

@@ -32,6 +32,9 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 
 public class FirebaseMessageService extends FirebaseMessagingService {
 
+    public  NotificationCompat.Builder notificationBuilder;
+
+
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
@@ -92,7 +95,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             String one_room_name = remoteMessage.getData().get("room");
             //1:1채팅 메시지 푸시 데이터
 
-
             String group_key = remoteMessage.getData().get("gsenderKey");
             String group_name = remoteMessage.getData().get("gname");
             String group_userPhotoImage = remoteMessage.getData().get("guserPhotoImage");
@@ -106,20 +108,20 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             if (tag != null) {
                 switch (tag) {
                     case "contact":
-                        setNotification(Photo, Title, Body, click_action, from_user_id);
+                        setNotification("contact",Photo, Title, Body, click_action, from_user_id);
                         break;
 
                     case "one":
                         //setNotification(userPhotoImage, name, message, click_action_message, one_room_name)
                         if (!token.equals(tokenSender)) { //메시지 보낸사람 기기는 푸시X
-                            setNotification(userPhotoImage, name, message, click_action_message, one_room_name);
+                            setNotification("one",userPhotoImage, name, message, click_action_message, one_room_name);
                         }
                         break;
 
                     case "group":
                         //setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
                         if (!group_token.equals(sender_token)) { //메시지 보낸사람 기기는 푸시X
-                            setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
+                            setNotification("group",group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
                         }
                         break;
                     default:
@@ -129,7 +131,8 @@ public class FirebaseMessageService extends FirebaseMessagingService {
 
     }
 
-    private void setNotification(String photoUrl, String title, String body, String clickAction, String from_value) {
+
+    private void setNotification(String tag, String photoUrl, String title, String body, String clickAction, String from_value) {
 
         Bitmap bitmap = null;
         try {
@@ -159,17 +162,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             Body = body;
         }
 
-
-        NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setLargeIcon(bitmap)
-                .setContentTitle(title)
-                .setContentText(Body)
-                .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE) //노티 사운드. 진동 설정
-                .setPriority(NotificationCompat.PRIORITY_HIGH) // 노티메시지시 팝업 추가
-                .setAutoCancel(true); //노티 클릭시 제거
-
-
         SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE );
         String currentUid = sharedPreferences.getString("uid", "");
         Intent resultIntent = new Intent(clickAction);
@@ -179,6 +171,37 @@ public class FirebaseMessageService extends FirebaseMessagingService {
                 this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT
         );  //노티로 채팅액티비티 호출 시 이미 채팅액티비티가 생성되어있으면 두개가 생성되므로 manifest에 채팅액티비티를 singleTask로 세팅해서 하나만 생성되도록함.
 
+        if(tag.equals("contact")) { // 친추 푸시 메시지는 노티에 수락/거절 버튼 포함해서 생성.
+            Intent accept = new Intent(getApplicationContext(), ContactActionReceiver.class);
+            accept.putExtra("action_contact", "approve");
+            PendingIntent approvePending = PendingIntent.getBroadcast(
+                    this, 1, accept, PendingIntent.FLAG_UPDATE_CURRENT
+            );
+            Intent deccept = new Intent(getApplicationContext(), ContactActionReceiver.class);
+            deccept.putExtra("action_contact", "refuse");
+            PendingIntent refuePending = PendingIntent.getBroadcast(
+                    this, 2, deccept, PendingIntent.FLAG_UPDATE_CURRENT
+            );
+            notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(getApplicationContext())
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setLargeIcon(bitmap)
+                    .setContentTitle(title)
+                    .setContentText(Body)
+                    .addAction(R.drawable.approve,"수락",approvePending)
+                    .addAction(R.drawable.refuse,"거절",refuePending)
+                    .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE) //노티 사운드. 진동 설정
+                    .setPriority(NotificationCompat.PRIORITY_HIGH) // 노티메시지시 팝업 추가
+                    .setAutoCancel(true); //노티 클릭시 제거
+        }else {
+            notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(getApplicationContext())
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setLargeIcon(bitmap)
+                    .setContentTitle(title)
+                    .setContentText(Body)
+                    .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE) //노티 사운드. 진동 설정
+                    .setPriority(NotificationCompat.PRIORITY_HIGH) // 노티메시지시 팝업 추가
+                    .setAutoCancel(true); //노티 클릭시 제거
+        }
 
         notificationBuilder.setContentIntent(resultPendingIntent);
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
