@@ -142,6 +142,7 @@
             android:name=".Service.UploadService"/>
 
         <receiver android:name=".Service.ContactActionReceiver"/>
+        <receiver android:name=".Service.DirectReplyReceiver"/>
     </application>
 
 

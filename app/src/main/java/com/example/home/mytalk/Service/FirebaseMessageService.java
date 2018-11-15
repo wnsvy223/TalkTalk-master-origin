@@ -1,5 +1,6 @@
 package com.example.home.mytalk.Service;
 
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.RemoteInput;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -26,6 +28,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.util.Random;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
 
@@ -33,7 +36,7 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 public class FirebaseMessageService extends FirebaseMessagingService {
 
     public  NotificationCompat.Builder notificationBuilder;
-
+    public String KEY_REPLY = "key_reply";
 
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
@@ -174,11 +177,13 @@ public class FirebaseMessageService extends FirebaseMessagingService {
         if(tag.equals("contact")) { // 친추 푸시 메시지는 노티에 수락/거절 버튼 포함해서 생성.
             Intent accept = new Intent(getApplicationContext(), ContactActionReceiver.class);
             accept.putExtra("action_contact", "approve");
+            accept.putExtra("from_user",from_value);
             PendingIntent approvePending = PendingIntent.getBroadcast(
                     this, 1, accept, PendingIntent.FLAG_UPDATE_CURRENT
             );
             Intent deccept = new Intent(getApplicationContext(), ContactActionReceiver.class);
             deccept.putExtra("action_contact", "refuse");
+            accept.putExtra("from_user",from_value);
             PendingIntent refuePending = PendingIntent.getBroadcast(
                     this, 2, deccept, PendingIntent.FLAG_UPDATE_CURRENT
             );
@@ -192,12 +197,39 @@ public class FirebaseMessageService extends FirebaseMessagingService {
                     .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE) //노티 사운드. 진동 설정
                     .setPriority(NotificationCompat.PRIORITY_HIGH) // 노티메시지시 팝업 추가
                     .setAutoCancel(true); //노티 클릭시 제거
-        }else {
+        }else { // 1:1 또는 그룹채팅 노티의 경우 direct reply 포함된 노티 생성
+            Intent directReply = new Intent(getApplicationContext(), DirectReplyReceiver.class);
+            directReply.putExtra("action_reply", "reply");
+            PendingIntent replyPending = PendingIntent.getBroadcast(
+                    this, 3, directReply, PendingIntent.FLAG_UPDATE_CURRENT
+            );
+
+            Intent cancel = new Intent(getApplicationContext(),DirectReplyReceiver.class);
+            cancel.putExtra("action_reply","cancel");
+            PendingIntent dismissIntent = PendingIntent.getBroadcast(
+                    this, 4, cancel, PendingIntent.FLAG_CANCEL_CURRENT);
+
+            RemoteInput remoteInput = new RemoteInput.Builder(KEY_REPLY)
+                    .setLabel("메시지를 입력하세요")
+                    .build();
+            NotificationCompat.Action replyAction = new NotificationCompat.Action.Builder(
+                    android.R.drawable.sym_action_chat, "답장", replyPending)
+                    .addRemoteInput(remoteInput)
+                    .setAllowGeneratedReplies(true)
+                    .build();
+
+            NotificationCompat.Action dismissAction = new NotificationCompat.Action.Builder(
+                    android.R.drawable.ic_menu_close_clear_cancel,"취소",dismissIntent)
+                    .build();
+
+
             notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(getApplicationContext())
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setLargeIcon(bitmap)
                     .setContentTitle(title)
                     .setContentText(Body)
+                    .addAction(replyAction)
+                    .addAction(dismissAction)
                     .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE) //노티 사운드. 진동 설정
                     .setPriority(NotificationCompat.PRIORITY_HIGH) // 노티메시지시 팝업 추가
                     .setAutoCancel(true); //노티 클릭시 제거
