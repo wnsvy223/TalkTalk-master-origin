@@ -44,6 +44,7 @@ import android.widget.Toast;
 import com.example.home.mytalk.Adapter.ChatAdapter;
 import com.example.home.mytalk.Adapter.ImageAdapter;
 import com.example.home.mytalk.Model.Chat;
+import com.example.home.mytalk.Model.FirebaseApp;
 import com.example.home.mytalk.Model.Friend;
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Service.MyLocationService;
@@ -89,8 +90,6 @@ public class ChatActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private String currentEmail;
     private String currentUid;
-    private String currentName;
-    private String currentPhoto;
     public String formattedDate;
     private String myKey;
     public SharedPreferences sharedPreferences_img;
@@ -121,6 +120,8 @@ public class ChatActivity extends AppCompatActivity {
     public ArrayList<String> unReadUserList;
     private ChildEventListener chatMessageListener;
     private ChildEventListener allChatMessageListener;
+    public FirebaseApp firebaseApp;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,13 +183,15 @@ public class ChatActivity extends AppCompatActivity {
             locationSwitch.setChecked(false);
         } //쉐어드프레퍼런스에 저장된 bool값에 의해 위치정보제공자가 켜져있으면 체크된상태, 켜져있지않으면 체크안된상태로 생성.
 
-        getCurrentValue(); // 채팅방 유저 이름, 사진 참조값
         goSendFile(); // 사진, 동영상 전송을 위해 각 버튼 활성화 함수
         goSendImage(); // 사진 메시지 전송을 위한 갤러리 호출 함수
         goSendVideo(); // 동영상 메시지 전송을 위한 갤러리 호출 함수
         sendButtonHide(); // 채팅창 메시지 없을때  전송 버튼 숨김기능 함수
         setActionbarTitle(); //액션바에 참가인원수 표시
         setOnLocSwitch(); //위치정보제공 스위치
+
+
+        firebaseApp = (FirebaseApp)getApplicationContext(); //공통 클래스 초기화
 
         /*
         imageView_back = (ImageView) findViewById(R.id.back_ground);
@@ -231,12 +234,15 @@ public class ChatActivity extends AppCompatActivity {
                 } else {
                     etText.setText("");
                     if (OpenChatRoom != null) {    //공개채팅방  Message Node Set
-                        setOpenMessage(stText, "text");
+                        //setOpenMessage(stText, "text");
+                        firebaseApp.setOpenMessage(stText,"text");
                     } else if (FriendChatUid != null) {
                         if (FriendChatUid.contains("Group@")) { //채팅 리스트 노드 참조값에 Group 문자가 포함되어 있으면 그룹채팅
-                            setGroupMessage(stText, "text");
+                            //setGroupMessage(stText, "text");
+                            firebaseApp.setGroupMessage(stText,"text",FriendChatUid, unReadUserList);
                         } else { //채팅 리스트 노드 참조값에 Group 문자가 포함되어있지 않으면 1:1 채팅
-                            setOneToOneMessage(stText, "text");
+                            //setOneToOneMessage(stText, "text");
+                            firebaseApp.setOneToOneMessage(stText,"text",FriendChatUid);
                         }
 
                     }
@@ -308,6 +314,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onResume();
 
         //------------------------------------채팅화면 생성되면 메시지들 참조하는 부분--------------------------------//
+        firebaseApp = (FirebaseApp)getApplicationContext();
         if (!TextUtils.isEmpty(OpenChatRoom)) { //채팅액티비티로 넘어올때 인텐트값이 공개방 생성값이면 공개채팅 참조
             mChatDisplayReference = database.getReference("openChatRoom").child(OpenChatRoom);
         } else if (!TextUtils.isEmpty(FriendChatUid)) { //채팅액티비티로 넘어올때 인텐트값이 친구대화방 생성값이면 친구대화방 참조
@@ -354,13 +361,6 @@ public class ChatActivity extends AppCompatActivity {
         mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
         mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null,FriendChatUid);
         mRecyclerView.setAdapter(mChatAdapter);
-
-
-     /*
-        if(Set_position != -1){
-            imageView_back.setBackgroundResource(Set_position);
-        }
-     */
 
     }
 
@@ -748,24 +748,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
 
-    private void getCurrentValue() {
-        DatabaseReference nameReference = database.getReference("users").child(currentUid);
-        nameReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Friend friend = dataSnapshot.getValue(Friend.class);
-                currentName = friend.getName();
-                currentPhoto = friend.getPhoto();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -808,170 +790,6 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
-    private void setOneToOneMessage(String messageText, String type) {
-
-        String current_user_ref = "oneToOneMessage/" + currentUid + "/" + FriendChatUid;
-        String chat_user_ref = "oneToOneMessage/" + FriendChatUid + "/" + currentUid;
-        mChatReference = database.getReference("oneToOneMessage");
-        String push_id = mChatReference.getKey();
-        String messageId = mChatReference.push().getKey();
-
-        HashMap message = new HashMap();
-        message.put("name", currentName);
-        message.put("email", currentEmail);
-        message.put("text", messageText);
-        message.put("from",currentUid);
-        message.put("type", type);
-        message.put("photo", currentPhoto);
-        message.put("time", formattedDate);
-        message.put("seen", false);
-        message.put("messageID",messageId);
-
-
-        HashMap messageUserMap = new HashMap();
-        messageUserMap.put(current_user_ref + "/" + push_id, message);
-        messageUserMap.put(chat_user_ref + "/" + push_id, message);
-
-        mRootRef = database.getReference();
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("seen").setValue(false);
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("timestamp").setValue(formattedDate);
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("Roomtype").setValue("OneToOne");
-        mChatReference.child(currentUid).child(FriendChatUid).child(messageId).setValue(message);
-
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("seen").setValue(false);
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("timestamp").setValue(formattedDate);
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("Roomtype").setValue("OneToOne");
-        mChatReference.child(FriendChatUid).child(currentUid).child(messageId).setValue(message);
-
-        // 해당유저와 1:1채팅 메시지를 전송하면 해당유저와의 대화창 목록을
-        // FriendChatRoom노드에 추가해서 리스트에 표시되도록 하는 형태.
-
-        FriendChatRoom.child(FriendChatUid).child(currentUid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if (dataSnapshot.hasChild("badgeCount")) { //배지node 있을 때
-                    long currentCount = (long) dataSnapshot.child("badgeCount").getValue();
-                    currentCount++;
-                    FriendChatRoom.child(FriendChatUid).child(currentUid).child("badgeCount").setValue(currentCount, new DatabaseReference.CompletionListener() {
-                        @Override
-                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                            Log.d("대화상대 배지 리셋 =>  현재접속자", currentUid + "방이름 : " + FriendChatUid);
-                        }
-                    });
-                } else { //배지node 없을 때 (= 처음 대화 시작 시)
-                    FriendChatRoom.child(FriendChatUid).child(currentUid).child("badgeCount").setValue(1, new DatabaseReference.CompletionListener() {
-                        @Override
-                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                            Log.d("대화상대 배지 초기 생성", "");
-                        }
-                    });
-                }
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-    }
-
-    private void setGroupMessage(String messageText, String type) {
-
-        mChatReference = database.getReference("groupMessage").child(FriendChatUid);
-        String messageId = mChatReference.push().getKey();
-        HashMap message = new HashMap();
-        message.put("name", currentName);
-        message.put("email", currentEmail);
-        message.put("text", messageText);
-        message.put("type", type);
-        message.put("photo", currentPhoto);
-        message.put("time", formattedDate);
-        message.put("key", currentUid);
-        message.put("unReadUserList",unReadUserList);
-        message.put("unReadCount",unReadUserList.size());
-        message.put("messageID",messageId);
-        mChatReference.child(messageId).setValue(message);
-
-        FriendChatRoom.child(currentUid).child(FriendChatUid).child("joinUserKey").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        List<String> MergeListKey = new ArrayList<>();
-                        if (dataSnapshot.hasChildren()) {
-                            MergeListKey.clear();
-                            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                                String key = postSnapshot.getValue().toString();
-                                resetTimeStamp(key);
-                                // 채팅이 쓰여질때마다 현재 채팅방의 참가자들의 키값을 받아와서
-                                // 각 참가자들의 채팅방 노드의 타임스템프값을 현재시간으로 바꿔주어
-                                // 타임스탬프값이 가장 최근인 채팅방을 맨 위쪽으로 정렬.
-
-                                if(!key.equals(currentUid)){
-                                    MergeListKey.add(key);
-                                    for(int i=0; i<MergeListKey.size(); i++){
-                                        resetBadgeCount(MergeListKey.get(i)); //메시지 보낸 사람을 제외한 참가자들의 노드의 배지카운트 세팅
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-            });
-    }
-
-    private void setOpenMessage(String messageText, String type){
-        mChatReference = database.getReference("openChatRoom").child(OpenChatRoom);
-
-        HashMap message = new HashMap();
-        message.put("name", currentName);
-        message.put("email", currentEmail);
-        message.put("text", messageText);
-        message.put("type", type);
-        message.put("photo",currentPhoto);
-        message.put("time", formattedDate);
-        message.put("key", currentUid);
-        mChatReference.push().setValue(message);
-    }
-
-    private void resetBadgeCount(final String key){
-        FriendChatRoom.child(key).child(FriendChatUid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.hasChild("badgeCount")) {
-
-                    long currentCountGroup = (long) dataSnapshot.child("badgeCount").getValue();
-                    currentCountGroup++;
-
-                    FriendChatRoom.child(key).child(FriendChatUid).child("badgeCount").setValue(currentCountGroup, new DatabaseReference.CompletionListener() {
-                        @Override
-                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                            Log.d("FCM 로그(그룹) => 현재접속자", currentUid + "방참가자 : " + key + "방이름 : " + FriendChatUid);
-                        }//그룹채팅의 경우 배지카운트 노드는 방 생성과 동시에 참가자 모두에게 생성되므로 조건 따로 필요없음
-                    });
-                }
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void resetTimeStamp(String key) { // 타임스탬프 시간값 최신값으로 Reset 함수
-        FriendChatRoom
-                .child(key)
-                .child(FriendChatUid)
-                .child("timestamp")
-                .setValue(formattedDate);
-    }
 
     private void setActionbarTitle(){
         if(!TextUtils.isEmpty(OpenChatRoom)){

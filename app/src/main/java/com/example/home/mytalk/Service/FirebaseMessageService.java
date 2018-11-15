@@ -15,6 +15,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.home.mytalk.BuildConfig;
+import com.example.home.mytalk.Model.FirebaseApp;
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Utils.RoundedTransformation;
 import com.google.firebase.database.DataSnapshot;
@@ -28,6 +29,11 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -37,10 +43,12 @@ public class FirebaseMessageService extends FirebaseMessagingService {
 
     public  NotificationCompat.Builder notificationBuilder;
     public String KEY_REPLY = "key_reply";
+    public String Body;
 
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
+
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE );
         PowerManager.WakeLock wakeLock = pm.newWakeLock( PowerManager.PARTIAL_WAKE_LOCK
@@ -106,7 +114,8 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             String sender_token = remoteMessage.getData().get("gtokenIdSender"); //채팅 메시지 보내는 사람 기기 토큰값
             String group_click_action = remoteMessage.getData().get("gclick_action_message");
             String group_room_name = remoteMessage.getData().get("groom");
-            //그룹 채팅 메시지 푸시 데이터
+            String unReadUser = remoteMessage.getData().get("unReadUser");
+
 
             if (tag != null) {
                 switch (tag) {
@@ -156,7 +165,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             e.printStackTrace();
         }
 
-        String Body;
         if (body.contains(".jpg")) {
             Body = "(사진)";
         }else if(body.contains(".mp4")){
@@ -174,7 +182,7 @@ public class FirebaseMessageService extends FirebaseMessagingService {
                 this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT
         );  //노티로 채팅액티비티 호출 시 이미 채팅액티비티가 생성되어있으면 두개가 생성되므로 manifest에 채팅액티비티를 singleTask로 세팅해서 하나만 생성되도록함.
 
-        if(tag.equals("contact")) { // 친추 푸시 메시지는 노티에 수락/거절 버튼 포함해서 생성.
+        if(tag.equals("contact")) { // 친추 푸시 메시지는 수락/거절 버튼 포함된 노티 생성.
             Intent accept = new Intent(getApplicationContext(), ContactActionReceiver.class);
             accept.putExtra("action_contact", "approve");
             accept.putExtra("from_user",from_value);
@@ -200,13 +208,20 @@ public class FirebaseMessageService extends FirebaseMessagingService {
         }else { // 1:1 또는 그룹채팅 노티의 경우 direct reply 포함된 노티 생성
             Intent directReply = new Intent(getApplicationContext(), DirectReplyReceiver.class);
             directReply.putExtra("action_reply", "reply");
+            directReply.putExtra("tag", tag);
+            directReply.putExtra("photoUrl", photoUrl);
+            directReply.putExtra("title", title);
+            directReply.putExtra("body", body);
+            directReply.putExtra("room", from_value);
+            //directReply.putExtra("unReadUser", (Serializable) unRead);
+
+
             PendingIntent replyPending = PendingIntent.getBroadcast(
-                    this, 3, directReply, PendingIntent.FLAG_UPDATE_CURRENT
-            );
+                    this, 3, directReply, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent cancel = new Intent(getApplicationContext(),DirectReplyReceiver.class);
             cancel.putExtra("action_reply","cancel");
-            PendingIntent dismissIntent = PendingIntent.getBroadcast(
+            PendingIntent dismissPending = PendingIntent.getBroadcast(
                     this, 4, cancel, PendingIntent.FLAG_CANCEL_CURRENT);
 
             RemoteInput remoteInput = new RemoteInput.Builder(KEY_REPLY)
@@ -219,7 +234,7 @@ public class FirebaseMessageService extends FirebaseMessagingService {
                     .build();
 
             NotificationCompat.Action dismissAction = new NotificationCompat.Action.Builder(
-                    android.R.drawable.ic_menu_close_clear_cancel,"취소",dismissIntent)
+                    android.R.drawable.ic_menu_close_clear_cancel,"취소",dismissPending)
                     .build();
 
 
