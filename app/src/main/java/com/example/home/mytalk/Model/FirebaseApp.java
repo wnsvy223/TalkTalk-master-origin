@@ -25,10 +25,9 @@ public class FirebaseApp extends Application {
 
     private FirebaseDatabase database;
     private DatabaseReference mChatDisplayReference;
-    private DatabaseReference mChatReference;
+   // private DatabaseReference mChatReference;
     private DatabaseReference FriendChatRoom;
     private DatabaseReference mUsersDatabase;
-    private DatabaseReference mRootRef;
     private String currentUid;
     private String currentName;
     private String currentPhoto;
@@ -81,7 +80,7 @@ public class FirebaseApp extends Application {
 
         String current_user_ref = "oneToOneMessage/" + currentUid + "/" + FriendChatUid;
         String chat_user_ref = "oneToOneMessage/" + FriendChatUid + "/" + currentUid;
-        mChatReference = database.getReference("oneToOneMessage");
+        DatabaseReference mChatReference = database.getReference("oneToOneMessage");
         String push_id = mChatReference.getKey();
         String messageId = mChatReference.push().getKey();
 
@@ -96,20 +95,18 @@ public class FirebaseApp extends Application {
         message.put("seen", false);
         message.put("messageID",messageId);
 
-
         HashMap messageUserMap = new HashMap();
         messageUserMap.put(current_user_ref + "/" + push_id, message);
         messageUserMap.put(chat_user_ref + "/" + push_id, message);
 
-        mRootRef = database.getReference();
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("seen").setValue(false);
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("timestamp").setValue(formattedDate);
-        mRootRef.child("friendChatRoom").child(currentUid).child(FriendChatUid).child("Roomtype").setValue("OneToOne");
+        FriendChatRoom.child(currentUid).child(FriendChatUid).child("seen").setValue(false);
+        FriendChatRoom.child(currentUid).child(FriendChatUid).child("timestamp").setValue(formattedDate);
+        FriendChatRoom.child(currentUid).child(FriendChatUid).child("Roomtype").setValue("OneToOne");
         mChatReference.child(currentUid).child(FriendChatUid).child(messageId).setValue(message);
 
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("seen").setValue(false);
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("timestamp").setValue(formattedDate);
-        mRootRef.child("friendChatRoom").child(FriendChatUid).child(currentUid).child("Roomtype").setValue("OneToOne");
+        FriendChatRoom.child(FriendChatUid).child(currentUid).child("seen").setValue(false);
+        FriendChatRoom.child(FriendChatUid).child(currentUid).child("timestamp").setValue(formattedDate);
+        FriendChatRoom.child(FriendChatUid).child(currentUid).child("Roomtype").setValue("OneToOne");
         mChatReference.child(FriendChatUid).child(currentUid).child(messageId).setValue(message);
 
         // 해당유저와 1:1채팅 메시지를 전송하면 해당유저와의 대화창 목록을
@@ -152,21 +149,20 @@ public class FirebaseApp extends Application {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
         formattedDate = simpleDateFormat.format(calendar.getTime());
 
-        mChatReference = database.getReference("groupMessage").child(FriendChatUid);
+        DatabaseReference mChatReference = database.getReference("groupMessage").child(FriendChatUid);
         String messageId = mChatReference.push().getKey();
-        HashMap message = new HashMap();
-        message.put("name", currentName);
-        message.put("email", currentEmail);
-        message.put("text", messageText);
-        message.put("type", type);
-        message.put("photo", currentPhoto);
-        message.put("time", formattedDate);
-        message.put("key", currentUid);
-        message.put("roomUser",unReadUserList);
-        message.put("unReadUserList",unReadUserList);
-        message.put("unReadCount",unReadUserList.size());
-        message.put("messageID",messageId);
-        mChatReference.child(messageId).setValue(message);
+        HashMap messageGroup = new HashMap();
+        messageGroup.put("name", currentName);
+        messageGroup.put("email", currentEmail);
+        messageGroup.put("text", messageText);
+        messageGroup.put("type", type);
+        messageGroup.put("photo", currentPhoto);
+        messageGroup.put("time", formattedDate);
+        messageGroup.put("key", currentUid);
+        messageGroup.put("unReadUserList",unReadUserList);
+        messageGroup.put("unReadCount",unReadUserList.size());
+        messageGroup.put("messageID",messageId);
+        mChatReference.child(messageId).setValue(messageGroup);
 
         FriendChatRoom.child(currentUid).child(FriendChatUid).child("joinUserKey").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -199,7 +195,7 @@ public class FirebaseApp extends Application {
     }
 
     public void setOpenMessage(String messageText, String type){
-        mChatReference = database.getReference("openChatRoom").child(OpenChatRoom);
+        DatabaseReference mChatReference = database.getReference("openChatRoom").child(OpenChatRoom);
 
         HashMap message = new HashMap();
         message.put("name", currentName);

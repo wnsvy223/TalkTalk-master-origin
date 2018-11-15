@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.RemoteInput;
@@ -12,6 +13,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.home.mytalk.Model.FirebaseApp;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -21,33 +27,51 @@ public class DirectReplyReceiver extends BroadcastReceiver{
     public String KEY_REPLY = "key_reply";
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-
-        FirebaseApp firebaseApp = ((FirebaseApp)context.getApplicationContext());
-        String action = intent.getStringExtra("action_reply");
-        String tag = intent.getStringExtra("tag");
-        //String photoUrl = intent.getStringExtra("photoUrl");
-        //String title = intent.getStringExtra("title");
-        //String body = intent.getStringExtra("body");
+    public void onReceive(final Context context, final Intent intent) {
         String room = intent.getStringExtra("room");
+        SharedPreferences sharedPreferences = context.getSharedPreferences("email", Context.MODE_PRIVATE);
+        String currentUid = sharedPreferences.getString("uid", "");
 
-        Bundle bundle = RemoteInput.getResultsFromIntent(intent);
-        if(!TextUtils.isEmpty(action)) {
-            if (bundle != null && action.equals("reply")) {
-                String messageText = bundle.getString(KEY_REPLY);
-                Toast.makeText(context, "다이렉트메시지:" + messageText, Toast.LENGTH_SHORT).show();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("friendChatRoom").child(currentUid).child(room).child("joinUserKey");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                FirebaseApp firebaseApp = ((FirebaseApp)context.getApplicationContext());
+                ArrayList<String> userList = (ArrayList<String>) dataSnapshot.getValue();
 
-                if(tag.equals("one")){
-                    firebaseApp.setOneToOneMessage(messageText,"text",room);
-                }else if(tag.equals("group")){
-                   // firebaseApp.setGroupMessage(messageText,"text",room,unReadUser);
+                String action = intent.getStringExtra("action_reply");
+                String tag = intent.getStringExtra("tag");
+                String roomValue = intent.getStringExtra("room");
+                //String photoUrl = intent.getStringExtra("photoUrl");
+                //String title = intent.getStringExtra("title");
+                //String body = intent.getStringExtra("body");
+
+                Bundle bundle = RemoteInput.getResultsFromIntent(intent);
+                if(!TextUtils.isEmpty(action)) {
+                    if (bundle != null && action.equals("reply")) {
+                        String messageText = bundle.getString(KEY_REPLY);
+
+                        if(tag.equals("one")){
+                            firebaseApp.setOneToOneMessage(messageText,"text",roomValue);
+                        }else if(tag.equals("group")){
+                            firebaseApp.setGroupMessage(messageText,"text",roomValue, userList);
+                        }
+
+                        clearExistingNotifications(context);
+                    }else if(action.equals("cancel")){
+                        clearExistingNotifications(context);
+                    }
                 }
 
-                clearExistingNotifications(context);
-            }else if(action.equals("cancel")){
-                clearExistingNotifications(context);
             }
-        }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
     }
 
     private void clearExistingNotifications(Context context) { // reply 입력후 노티 제거

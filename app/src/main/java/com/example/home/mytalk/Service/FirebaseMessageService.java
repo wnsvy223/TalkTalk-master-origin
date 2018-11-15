@@ -27,14 +27,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.squareup.picasso.Picasso;
-
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+
 
 import me.leolin.shortcutbadger.ShortcutBadger;
 
@@ -44,6 +42,8 @@ public class FirebaseMessageService extends FirebaseMessagingService {
     public  NotificationCompat.Builder notificationBuilder;
     public String KEY_REPLY = "key_reply";
     public String Body;
+    public List<String> userListValue;
+
 
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
@@ -114,7 +114,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             String sender_token = remoteMessage.getData().get("gtokenIdSender"); //채팅 메시지 보내는 사람 기기 토큰값
             String group_click_action = remoteMessage.getData().get("gclick_action_message");
             String group_room_name = remoteMessage.getData().get("groom");
-            String unReadUser = remoteMessage.getData().get("unReadUser");
 
 
             if (tag != null) {
@@ -213,8 +212,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             directReply.putExtra("title", title);
             directReply.putExtra("body", body);
             directReply.putExtra("room", from_value);
-            //directReply.putExtra("unReadUser", (Serializable) unRead);
-
 
             PendingIntent replyPending = PendingIntent.getBroadcast(
                     this, 3, directReply, PendingIntent.FLAG_UPDATE_CURRENT);

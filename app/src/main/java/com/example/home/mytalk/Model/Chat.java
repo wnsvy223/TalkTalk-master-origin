@@ -22,7 +22,8 @@ public class Chat {
     private String messageID;
     private boolean seen;
 
-    public Chat(String email, String text, String photo, String time, String key, String userNumber,String type, ArrayList<String> unReadUserList, int unReadCount,String messageID,boolean seen) {
+
+    public Chat(String email, String text, String photo, String time, String key, String userNumber,String type, List<String> unReadUserList, int unReadCount,String messageID,boolean seen) {
         this.email = email;
         this.text = text;
         this.photo = photo;
@@ -34,6 +35,7 @@ public class Chat {
         this.unReadCount = unReadCount;
         this.messageID = messageID;
         this.seen = seen;
+
     }
 
     public Chat() {
@@ -135,4 +137,5 @@ public class Chat {
     public void setSeen(boolean seen) {
         this.seen = seen;
     }
+
 }
