@@ -356,7 +356,7 @@ public class ChatActivity extends AppCompatActivity {
 
             }
         });
-        readAllMessage(); // 읽지 않은 메시지 모두 읽음 처리
+        readAllMessage(FriendChatUid); // 읽지 않은 메시지 모두 읽음 처리
         mChat = new ArrayList<>(); //채팅 목록(그룹채팅 액티비티 진입 후 돌아오면 Resume에서 다시 그려줘야됨)
         mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
         mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null,FriendChatUid);
@@ -389,7 +389,7 @@ public class ChatActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void readAllMessage(){
+    private void readAllMessage(final String room){
         // 읽지 않은 모든 메시지 읽음 처리
         allChatMessageListener = mChatDisplayReference.addChildEventListener(new ChildEventListener() {
             @Override
@@ -399,7 +399,7 @@ public class ChatActivity extends AppCompatActivity {
                 // 각 메시지 노드마다 unReadCount 와 unReadUserList를 두어 메시지를 읽으러 액티비티로 들어왔을 때
                 // unReaUserList에서 해당 유저의 키값 삭제 & unReadCount = 리스트사이즈
                 List<String> unReadUserList = chat.getUnReadUserList();
-                if(unReadUserList != null){
+                if(room.contains("Group@") && unReadUserList != null){
                     if(unReadUserList.contains(currentUid)){
                         dataSnapshot.getRef().runTransaction(new Transaction.Handler() {
                             @Override
@@ -423,7 +423,7 @@ public class ChatActivity extends AppCompatActivity {
                             }
                         });
                     }
-                }else{ // unReadUserList가 null인 경우 = 1:1채팅
+                }else if(!room.contains("Group@")){ // Group키워드가 없을 경우 = 1:1채팅
                     String messageId = chat.getMessageID();
                     Log.d("로그",messageId);
                     database.getReference("oneToOneMessage").child(FriendChatUid).child(currentUid).child(messageId).child("seen").setValue(true);

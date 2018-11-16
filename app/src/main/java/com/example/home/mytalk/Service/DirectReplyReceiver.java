@@ -42,9 +42,6 @@ public class DirectReplyReceiver extends BroadcastReceiver{
                 String action = intent.getStringExtra("action_reply");
                 String tag = intent.getStringExtra("tag");
                 String roomValue = intent.getStringExtra("room");
-                //String photoUrl = intent.getStringExtra("photoUrl");
-                //String title = intent.getStringExtra("title");
-                //String body = intent.getStringExtra("body");
 
                 Bundle bundle = RemoteInput.getResultsFromIntent(intent);
                 if(!TextUtils.isEmpty(action)) {

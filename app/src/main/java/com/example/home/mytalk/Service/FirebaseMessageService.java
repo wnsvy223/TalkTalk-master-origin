@@ -208,16 +208,13 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             Intent directReply = new Intent(getApplicationContext(), DirectReplyReceiver.class);
             directReply.putExtra("action_reply", "reply");
             directReply.putExtra("tag", tag);
-            directReply.putExtra("photoUrl", photoUrl);
-            directReply.putExtra("title", title);
-            directReply.putExtra("body", body);
             directReply.putExtra("room", from_value);
-
             PendingIntent replyPending = PendingIntent.getBroadcast(
                     this, 3, directReply, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent cancel = new Intent(getApplicationContext(),DirectReplyReceiver.class);
             cancel.putExtra("action_reply","cancel");
+            cancel.putExtra("room", from_value);
             PendingIntent dismissPending = PendingIntent.getBroadcast(
                     this, 4, cancel, PendingIntent.FLAG_CANCEL_CURRENT);
 
