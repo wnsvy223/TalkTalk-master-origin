@@ -1,12 +1,10 @@
 package com.example.home.mytalk.Service;
 
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.RemoteInput;
@@ -14,23 +12,17 @@ import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.example.home.mytalk.BuildConfig;
-import com.example.home.mytalk.Model.FirebaseApp;
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Utils.RoundedTransformation;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.squareup.picasso.Picasso;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -42,7 +34,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
     public  NotificationCompat.Builder notificationBuilder;
     public String KEY_REPLY = "key_reply";
     public String Body;
-    public List<String> userListValue;
 
 
     @Override

@@ -1,6 +1,5 @@
 package com.example.home.mytalk.Service;
 
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,10 +8,8 @@ import android.os.Bundle;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.RemoteInput;
 import android.text.TextUtils;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.example.home.mytalk.Model.FirebaseApp;
+import com.example.home.mytalk.Appliccation.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;

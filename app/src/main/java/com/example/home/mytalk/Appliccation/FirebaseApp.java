@@ -1,4 +1,4 @@
-package com.example.home.mytalk.Model;
+package com.example.home.mytalk.Appliccation;
 
 import android.app.Application;
 import android.content.SharedPreferences;
@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.home.mytalk.Model.Friend;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
