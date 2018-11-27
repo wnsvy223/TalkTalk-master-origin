@@ -95,7 +95,6 @@ public class SplashActivity extends AwesomeSplash {
         if(autoLoginID != null && autoLoginPW != null){
             Log.d("자동로그인 정보 ","아이디:"+ autoLoginID +" / "+"비번:"+ autoLoginPW);
 
-            mAuth = FirebaseAuth.getInstance();
             mAuth.signInWithEmailAndPassword(autoLoginID, autoLoginPW)
                     .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override

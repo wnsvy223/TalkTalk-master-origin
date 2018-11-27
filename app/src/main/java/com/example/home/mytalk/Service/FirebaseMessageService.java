@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.PowerManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.RemoteInput;
 import android.support.v7.app.NotificationCompat;
@@ -14,6 +15,11 @@ import android.util.Log;
 
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Utils.RoundedTransformation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,12 +40,34 @@ public class FirebaseMessageService extends FirebaseMessagingService {
     public  NotificationCompat.Builder notificationBuilder;
     public String KEY_REPLY = "key_reply";
     public String Body;
-
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private String autoLoginID;
+    private String autoLoginPW;
+    private String currentUid;
+    private String currentEmail;
 
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
+        SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
+        autoLoginID = autoLogin.getString("inputId", null);
+        autoLoginPW = autoLogin.getString("inputPwd", null);
+        SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
+        currentUid = sharedPreferences.getString("uid", "");
+        currentEmail =  sharedPreferences.getString("email", "");
+
+        mAuth = FirebaseAuth.getInstance();
+        mAuth.signInWithEmailAndPassword(autoLoginID, autoLoginPW)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("current user : ",currentUid + "current user : " + currentEmail );
+                        }
+                    }
+                }); // 데이터베이스 Rule이 인증된 유저만 가능하도록 했기때문에 푸시메시지 받았을때 인증처리 로직 추가 수행.
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE );
         PowerManager.WakeLock wakeLock = pm.newWakeLock( PowerManager.PARTIAL_WAKE_LOCK
@@ -48,8 +76,7 @@ public class FirebaseMessageService extends FirebaseMessagingService {
         // PARTIAL_WAKE_LOCK : 화면을 깨우지 않고 잠금화면에 푸시 알림 표시 및 진동&소리 제공
         // SCREEN_DIM_WAKE_LOCK (deprecated ) : 화면을 깨우고 푸시 알림 표시 및 진동&소리 제공
 
-        SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
-        String currentUid = sharedPreferences.getString("uid", "");
+
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("friendChatRoom").child(currentUid);
         databaseReference.addValueEventListener(new ValueEventListener() {
