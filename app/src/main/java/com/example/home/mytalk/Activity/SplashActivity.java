@@ -65,8 +65,8 @@ public class SplashActivity extends AwesomeSplash {
         //configSplash.setTitleFont("fonts/myfont.ttf"); //provide string to your font located in assets/fonts/
 
         SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
-        autoLoginID = autoLogin.getString("inputId", null);
-        autoLoginPW = autoLogin.getString("inputPwd", null);
+        autoLoginID = autoLogin.getString("inputId", "");
+        autoLoginPW = autoLogin.getString("inputPwd", "");
         isAutoLogin = false;
 
         mAuth = FirebaseAuth.getInstance();

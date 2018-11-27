@@ -42,8 +42,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
     public String Body;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private String autoLoginID;
-    private String autoLoginPW;
     private String currentUid;
     private String currentEmail;
 
@@ -52,8 +50,8 @@ public class FirebaseMessageService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
 
         SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
-        autoLoginID = autoLogin.getString("inputId", null);
-        autoLoginPW = autoLogin.getString("inputPwd", null);
+        String autoLoginID = autoLogin.getString("inputId", "");
+        String autoLoginPW = autoLogin.getString("inputPwd", "");
         SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
         currentUid = sharedPreferences.getString("uid", "");
         currentEmail =  sharedPreferences.getString("email", "");

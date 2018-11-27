@@ -94,8 +94,6 @@ public class ChatActivity extends AppCompatActivity {
     public static String OpenChatRoom;
     private String FriendChatUid;
     private DatabaseReference mChatDisplayReference;
-    private DatabaseReference mChatReference;
-    private DatabaseReference mRootRef;
     private DatabaseReference FriendChatRoom;
     private DatabaseReference mUsersDatabase;
     private ProgressBar uploadProgress;
@@ -324,6 +322,7 @@ public class ChatActivity extends AppCompatActivity {
                 mChat.add(chat);
                 mRecyclerView.scrollToPosition(mChat.size() - 1);
                 mChatAdapter.notifyItemInserted(mChat.size() - 1);
+
             }
 
             @Override
@@ -353,7 +352,6 @@ public class ChatActivity extends AppCompatActivity {
         mLoadMoreChat  = new ArrayList<>(); //추가 로딩 채팅 목록
         mChatAdapter = new ChatAdapter(mChat, currentEmail, mContext,null,FriendChatUid);
         mRecyclerView.setAdapter(mChatAdapter);
-
     }
 
 
