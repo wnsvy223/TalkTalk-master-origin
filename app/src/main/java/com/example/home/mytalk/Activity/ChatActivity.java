@@ -272,7 +272,7 @@ public class ChatActivity extends AppCompatActivity {
 
                                 } else if ((keyList.size()) != totalItemCount && ((totalItemCount - keyList.size())) < 10) {
                                     //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
-                                    String lastBottomKey = keyList.get(totalItemCount);
+                                    String lastBottomKey = keyList.get(keyList.size() - 1);
                                     int lastTopPosition = totalItemCount + ((keyList.size() - 1) - totalItemCount); //추가되는 메시지목록수 =  남은 채팅목록수
                                     String lastTopKey = keyList.get(lastTopPosition);
                                     loadMoreMessage(mChatDisplayReference, lastBottomKey, lastTopKey);
