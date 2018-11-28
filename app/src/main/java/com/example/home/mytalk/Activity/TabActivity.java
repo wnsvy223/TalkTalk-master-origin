@@ -355,8 +355,8 @@ public class TabActivity extends AppCompatActivity{
     }
 
     public void Set_On() {
-        String Online = "접속중";
-        databaseReference.child(currentUid).child("state").setValue(Online); //DB에서의 명시적 로그인 상태 세팅
+        //String Online = "접속중";
+        //databaseReference.child(currentUid).child("state").setValue(Online); //DB에서의 명시적 로그인 상태 세팅
         //mAuth.signIn()은 메인액티비티에서 로그인되는 형태이기 때문에 메인액티비티에서 체크
     }
 

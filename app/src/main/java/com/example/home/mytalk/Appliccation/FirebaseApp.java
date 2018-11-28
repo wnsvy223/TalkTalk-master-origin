@@ -62,9 +62,11 @@ public class FirebaseApp extends Application {
        mUsersDatabase.child(currentUid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Friend friend = dataSnapshot.getValue(Friend.class);
-                currentName = friend.getName();
-                currentPhoto = friend.getPhoto();
+                //Friend friend = dataSnapshot.getValue(Friend.class);
+                //currentName = friend.getName();
+                //currentPhoto = friend.getPhoto();
+                currentName = dataSnapshot.child("name").getValue().toString();
+                currentPhoto = dataSnapshot.child("photo").getValue().toString();
             }
 
             @Override

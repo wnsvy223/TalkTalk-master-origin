@@ -257,28 +257,30 @@ public class ChatActivity extends AppCompatActivity {
                         mChatDisplayReference.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
-                                totalItemCount = mLayoutManager.getItemCount(); //화면에 보이는 채팅목록 갯수
-                                keyList.clear();
-                                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                                    String key = postSnapshot.getKey();
-                                    keyList.add(0, key); //채팅목록의 전체 키-노드값이 들어가있음 (인덱스0으로 주면 역순으로 추가)
-                                }
-                                int topPosition = totalItemCount + 10; //새로 추가될 목록의 탑 포지션은 화면에 표시된 메시지갯수 + 10
-                                if (topPosition <= keyList.size() - 1) {
-                                    //채팅전체목록값보다 작을경우(= 아직 로딩될 채팅이 남은 경우)
-                                    String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 아래 채팅노드 키값
-                                    String topKey = keyList.get(topPosition); //현재 화면의 맨 위 채팅노드 키값
-                                    loadMoreMessage(mChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
+                                if(keyList.size() > 0 || totalItemCount > 0) {
+                                    totalItemCount = mLayoutManager.getItemCount(); //화면에 보이는 채팅목록 갯수
+                                    keyList.clear();
+                                    for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                                        String key = postSnapshot.getKey();
+                                        keyList.add(0, key); //채팅목록의 전체 키-노드값이 들어가있음 (인덱스0으로 주면 역순으로 추가)
+                                    }
+                                    int topPosition = totalItemCount + 10; //새로 추가될 목록의 탑 포지션은 화면에 표시된 메시지갯수 + 10
+                                    if (topPosition <= keyList.size() - 1) {
+                                        //채팅전체목록값보다 작을경우(= 아직 로딩될 채팅이 남은 경우)
+                                        String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 아래 채팅노드 키값
+                                        String topKey = keyList.get(topPosition); //현재 화면의 맨 위 채팅노드 키값
+                                        loadMoreMessage(mChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
 
-                                } else if ((keyList.size()) != totalItemCount && ((totalItemCount - keyList.size())) < 10) {
-                                    //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
-                                    String lastBottomKey = keyList.get(keyList.size() - 1);
-                                    int lastTopPosition = totalItemCount + ((keyList.size() - 1) - totalItemCount); //추가되는 메시지목록수 =  남은 채팅목록수
-                                    String lastTopKey = keyList.get(lastTopPosition);
-                                    loadMoreMessage(mChatDisplayReference, lastBottomKey, lastTopKey);
-                                } else {
-                                    //모두 로딩된 경우
-                                    Toast.makeText(getApplicationContext(), "더 이상 대화 내용이 없습니다.", Toast.LENGTH_SHORT).show();
+                                    } else if ((keyList.size()) != totalItemCount && ((totalItemCount - keyList.size())) < 10) {
+                                        //아직 채팅 전체 목록이 표시되지않은 경우 && 남은 채팅목록수가 추가되는 목록수(9)보다 작을 경우
+                                        String lastBottomKey = keyList.get(keyList.size() - 1);
+                                        int lastTopPosition = totalItemCount + ((keyList.size() - 1) - totalItemCount); //추가되는 메시지목록수 =  남은 채팅목록수
+                                        String lastTopKey = keyList.get(lastTopPosition);
+                                        loadMoreMessage(mChatDisplayReference, lastBottomKey, lastTopKey);
+                                    } else {
+                                        //모두 로딩된 경우
+                                        Toast.makeText(getApplicationContext(), "더 이상 대화 내용이 없습니다.", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
                             }
 
