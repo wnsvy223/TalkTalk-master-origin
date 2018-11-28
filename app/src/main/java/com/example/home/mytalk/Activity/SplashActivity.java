@@ -3,6 +3,7 @@ package com.example.home.mytalk.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -92,7 +93,7 @@ public class SplashActivity extends AwesomeSplash {
         };
 
         // firebase 로그인 체크 함수는 초기화 함수에서 확인하고  sharepreference 자동 로그인조건은 animationsFinished()에서 확인하여 시간 단축
-        if(autoLoginID != null && autoLoginPW != null){
+        if(!TextUtils.isEmpty(autoLoginID) && !TextUtils.isEmpty(autoLoginPW)){
             Log.d("자동로그인 정보 ","아이디:"+ autoLoginID +" / "+"비번:"+ autoLoginPW);
 
             mAuth.signInWithEmailAndPassword(autoLoginID, autoLoginPW)
