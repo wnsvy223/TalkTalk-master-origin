@@ -26,7 +26,6 @@ public class FirebaseApp extends Application {
 
     private FirebaseDatabase database;
     private DatabaseReference mChatDisplayReference;
-   // private DatabaseReference mChatReference;
     private DatabaseReference FriendChatRoom;
     private DatabaseReference mUsersDatabase;
     private String currentUid;
