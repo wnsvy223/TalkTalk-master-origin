@@ -1,10 +1,15 @@
 package com.example.home.mytalk.Service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationManagerCompat;
@@ -160,6 +165,18 @@ public class FirebaseMessageService extends FirebaseMessagingService {
 
 
     private void setNotification(String tag, String photoUrl, String title, String body, String clickAction, String from_value) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {  // Oreo 노티채널
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationChannel notificationChannel = new NotificationChannel("channel_id", "channel_name", NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.setDescription("channel description");
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.GREEN);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setVibrationPattern(new long[]{100, 200, 100, 200});
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
 
         Bitmap bitmap = null;
         try {
