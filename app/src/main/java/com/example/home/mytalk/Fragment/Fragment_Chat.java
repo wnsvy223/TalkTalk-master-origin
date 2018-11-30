@@ -105,6 +105,11 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         return view;
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        firebaseConvAdapter.cleanup();
+    }
 
     @Override
     public void onStart() {
