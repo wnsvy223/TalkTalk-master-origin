@@ -81,7 +81,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
     public int type;
     private FirebaseRecyclerAdapter<Chat,ChatViewHolder> firebaseConvAdapter;
     public DisplayMetrics metrics;
-
+    private Query lassMessageQuery;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -176,9 +176,12 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             String room = dataSnapshot.getKey();
                             Log.d("방",room);
-
-                            Query lastMessageGroupQuery = mGroupMessageDatabase.child(room).limitToLast(1);
-                            lastMessageGroupQuery.addChildEventListener(new ChildEventListener() {
+                            if(room.contains("Group@")){
+                                lassMessageQuery = mGroupMessageDatabase.child(room).limitToLast(1); //데이터 베이스 메시지 그룹 메시지 트리의 마지막메시지만 가져옴
+                            }else{
+                                lassMessageQuery = mMessageDatabase.child(room).limitToLast(1);  //데이터 베이스 메시지 1:1 메시지 트리의 마지막메시지만 가져옴
+                            }
+                            lassMessageQuery.addChildEventListener(new ChildEventListener() {
                                 @Override
                                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                                     Chat chat = dataSnapshot.getValue(Chat.class);
@@ -209,40 +212,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
                                 }
                             });
-
-                            Query lastMessageQuery = mMessageDatabase.child(room).limitToLast(1);  //데이터 베이스 메시지 트리의 마지막메시지만 가져옴
-                            lastMessageQuery.addChildEventListener(new ChildEventListener() {
-                                @Override
-                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                    Chat chat = dataSnapshot.getValue(Chat.class);
-                                    String text = chat.getText();
-                                    String type = chat.getType();
-                                    String time = chat.getTime();
-                                    viewHolder.setMessage(text, type);
-                                    viewHolder.setTimeStamp(time);
-                                }
-
-                                @Override
-                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                                }
-
-                                @Override
-                                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                                }
-
-                                @Override
-                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-
                         }
 
                         @Override
@@ -596,8 +565,9 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                             newList.remove(userImageList[i]);
                         } //리스트 원소중 내 키값은 삭제.
                         setImage(newList.get(i), context, arrayUserImage, i);
-                        arrayUserImage[i].getLayoutParams().width = 90;
-                        arrayUserImage[i].getLayoutParams().height = 90;
+
+                        arrayUserImage[0].getLayoutParams().width = 90;
+                        arrayUserImage[1].getLayoutParams().height = 90;
                         arrayUserImage[0].setY(45);
                         arrayUserImage[1].setY(45);
                         arrayUserImage[2].setX(45);
