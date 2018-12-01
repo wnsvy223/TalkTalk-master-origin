@@ -181,15 +181,12 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                             lastMessageGroupQuery.addChildEventListener(new ChildEventListener() {
                                 @Override
                                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
                                     Chat chat = dataSnapshot.getValue(Chat.class);
                                     String text = chat.getText();
                                     String type = chat.getType();
                                     String time = chat.getTime();
                                     viewHolder.setMessage(text, type);
                                     viewHolder.setTimeStamp(time);
-                                    Log.d("뷰홀더", text + " / " + time);
-
                                 }
 
                                 @Override
@@ -223,7 +220,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                                     String time = chat.getTime();
                                     viewHolder.setMessage(text, type);
                                     viewHolder.setTimeStamp(time);
-
                                 }
 
                                 @Override
@@ -279,76 +275,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
                         }
                     });
-/*
-                    Query lastMessageQuery = mMessageDatabase.child(list_room_id).limitToLast(1);  //데이터 베이스 메시지 트리의 마지막메시지만 가져옴
-                    lastMessageQuery.addChildEventListener(new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            Chat chat = dataSnapshot.getValue(Chat.class);
-                            String text = chat.getText();
-                            String type = chat.getType();
-                            String time = chat.getTime();
-                            viewHolder.setMessage(text, type);
-                            viewHolder.setTimeStamp(time);
 
-                        }
-
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                        }
-
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
-
-                    Query lastMessageGroupQuery = mGroupMessageDatabase.child(list_room_id).limitToLast(1);
-                    lastMessageGroupQuery.addChildEventListener(new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            Chat chat = dataSnapshot.getValue(Chat.class);
-                            String text = chat.getText();
-                            String type = chat.getType();
-                            String time = chat.getTime();
-                            viewHolder.setMessage(text, type);
-                            viewHolder.setTimeStamp(time);
-
-                        }
-
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                        }
-
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-*/
                     mUsersDatabase.child(list_room_id).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -571,7 +498,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                 userNameView.setVisibility(View.INVISIBLE);
             }else{
                 userNameView.setVisibility(View.VISIBLE);
-                userNameView.setText(name);
+                userNameView.setText("["+name+"]");
             }
         }
 
@@ -669,39 +596,13 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                             newList.remove(userImageList[i]);
                         } //리스트 원소중 내 키값은 삭제.
                         setImage(newList.get(i), context, arrayUserImage, i);
-
-                        switch (dpi) {
-                            case 480:
-                                if (arrayUserImage[0].getY() == 100) {
-                                    arrayUserImage[0].setTranslationY(45);
-                                }
-                                if (arrayUserImage[1].getY() == 100) {
-                                    arrayUserImage[1].setTranslationY(45);
-                                }
-                                arrayUserImage[2].setTranslationX(0);
-
-                                break;
-                            case 560:
-                                if (arrayUserImage[0].getY() == 120) {
-                                    arrayUserImage[0].setTranslationY(53);
-                                }
-                                if (arrayUserImage[1].getY() == 120) {
-                                    arrayUserImage[1].setTranslationY(53);
-                                }
-                                arrayUserImage[2].setTranslationX(0);
-                                break;
-                            case 640:
-                                Log.d("뷰테스트", String.valueOf(arrayUserImage[0].getY()));
-                                if (arrayUserImage[0].getY() == 120) {
-                                    arrayUserImage[0].setTranslationY(53);
-                                }
-                                if (arrayUserImage[1].getY() == 120) {
-                                    arrayUserImage[1].setTranslationY(53);
-                                }
-                                arrayUserImage[2].setTranslationX(0);
-                                break;
-                            default:
-                        }
+                        arrayUserImage[i].getLayoutParams().width = 90;
+                        arrayUserImage[i].getLayoutParams().height = 90;
+                        arrayUserImage[0].setY(45);
+                        arrayUserImage[1].setY(45);
+                        arrayUserImage[2].setX(45);
+                        userNameView.setTranslationX(-5);
+                        userStatusView.setTranslationX(-5);
                     }
                 } else {  //4명 이하면 인원만큼만 가져오기
                     for (int i = 0; i < userImageList.length - 1; i++) {
@@ -711,7 +612,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                             newList.remove(userImageList[i]);
                         }
                         setImage(newList.get(i), context, arrayUserImage, i);
-
                         switch (dpi) {
                             case 480:
                                 if(count == 3) {  //이미지뷰2개
