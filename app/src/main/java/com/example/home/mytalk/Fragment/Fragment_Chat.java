@@ -175,7 +175,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             String room = dataSnapshot.getKey();
-                            Log.d("방",room);
                             if(room.contains("Group@")){
                                 lassMessageQuery = mGroupMessageDatabase.child(room).limitToLast(1); //데이터 베이스 메시지 그룹 메시지 트리의 마지막메시지만 가져옴
                             }else{
@@ -502,24 +501,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
         public void setUserNameGroup(List<String> name, String myName){
             TextView userNameView = (TextView) mView.findViewById(R.id.user_group_name);
-            /*
-            int index = name.indexOf("[");
-            int index2 = name.indexOf("]");
-            String split = name.substring(index + 1);
-            String split2 = split.substring(0,index2 - 1);
-
-            String userNameList[] = split2.split(", ");
-            List<String> newList = new ArrayList<>();
-            Collections.addAll(newList,userNameList);
-            for(int i=0; i<userNameList.length - 1; i++){
-                if (userNameList[i].equals(myName)){
-                    newList.remove(userNameList[i]);
-                }
-                userNameView.append(newList.get(i) + "  ");
-                Log.d("참가자들", String.valueOf(newList));
-                //DB로 부터 받아온 참가리스트중 나의 이름은 삭제후 append를 이용해 리스트값을 텍스트뷰에 세팅
-            }
-            */
             if(name == null || name.size() <= 0){
                 userNameView.setVisibility(View.INVISIBLE);
             }else {
