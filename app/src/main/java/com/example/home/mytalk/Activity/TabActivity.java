@@ -486,6 +486,7 @@ public class TabActivity extends AppCompatActivity{
                     public void onClick(View v) {
                         intent = new Intent(getApplicationContext(), GroupChatActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.putExtra("newGroupChat",true); // 그룹채팅액티비티에서 초대기능 or 신규생성 구분을 위한 인탠트값.
                         startActivity(intent);
                     }
                 });

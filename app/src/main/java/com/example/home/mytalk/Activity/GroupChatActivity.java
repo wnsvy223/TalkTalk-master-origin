@@ -55,7 +55,8 @@ public class GroupChatActivity extends AppCompatActivity {
     public HashMap AddHashMap;
     private DatabaseReference mRootRef;
     private DatabaseReference roomNodeReference;
-
+    public DatabaseReference systemReference;
+    public boolean isFirst;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,10 +80,10 @@ public class GroupChatActivity extends AppCompatActivity {
         getRootReference();
         getCurrentUserValue();
 
-        //생성된 그룹방에 추가 인원 초대를 위한 구간
         Intent intent = getIntent();
         invite = intent.getStringExtra("invite");
-        if(!TextUtils.isEmpty(invite)) {
+        isFirst = intent.getBooleanExtra("newGroupChat",false); // 신규대화방 생성 시 true로 넘어옴;
+        if(!TextUtils.isEmpty(invite)) { //생성된 그룹방에 추가 인원 초대를 위한 구간
             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("friendChatRoom")
                     .child(currentUid).child(invite).child("join");
             databaseReference.addValueEventListener(new ValueEventListener() {
@@ -201,11 +202,13 @@ public class GroupChatActivity extends AppCompatActivity {
                             mRootRef.child("friendChatRoom").child(checkKey.get(i)).child(currentUid).child("Roomtype").setValue("OneToOne");
 
                         }else{ //2인보다 많으면 그룹채팅이므로 그룹채팅 노드 생성
+                            String roomNode = "Group@" + "+" + inviteUserNum + "+" + currentUid + "+" + formattedDate;
                             DatabaseReference GroupReference_Current = FirebaseDatabase.getInstance().getReference().child("friendChatRoom").child(currentUid);
-                            GroupReference_Current.child("Group@" + "+" + inviteUserNum + "+" + currentUid + "+" + formattedDate).setValue(checkedUser);
+                            GroupReference_Current.child(roomNode).setValue(checkedUser);
 
                             DatabaseReference GroupReference_Invite = FirebaseDatabase.getInstance().getReference().child("friendChatRoom").child(checkKey.get(i));
-                            GroupReference_Invite.child("Group@" + "+" + inviteUserNum + "+" + currentUid + "+" + formattedDate).setValue(checkedUser);
+                            GroupReference_Invite.child(roomNode).setValue(checkedUser);
+
 
                         }
                     }else{ //추가 인원 초대를 위한 액티비티 호출일 경우
@@ -222,11 +225,13 @@ public class GroupChatActivity extends AppCompatActivity {
                     }
                 }
 
-                if(!TextUtils.isEmpty(invite)) {  //시스템 메시지는 생성되어있는 대화방으로의 초대 경우에만 호출
+                if(!TextUtils.isEmpty(invite) && !isFirst) {  //시스템 메시지는 생성되어있는 대화방으로의 초대 경우에만 호출
                     checkUser.remove(currentUserName);
-                    setSystemMessage(checkUser);
+                    setSystemMessage(checkUser,invite,false);
+                }else{ // 대화방 신규 생성시 대화방생성 메시지 시스템메시지 호출
+                    String roomNode = "Group@" + "+" + inviteUserNum + "+" + currentUid + "+" + formattedDate;
+                    setSystemMessage(checkUser,roomNode,true);
                 }
-
                 this.finish();
                 return true;
             }
@@ -234,13 +239,17 @@ public class GroupChatActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setSystemMessage(List<String> joinUser){
+    private void setSystemMessage(List<String> joinUser, String roomNode, boolean first){
         if(joinUser.size() > 0) {
-            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(invite);
-            String messageID = databaseReference.push().getKey();
-
             HashMap message = new HashMap();
-            message.put("text", joinUser + "님이 대화에 참가했습니다.");
+            if(first){
+                message.put("text", "대화방이 생성되었습니다.");
+                systemReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(roomNode);
+            }else{
+                message.put("text", joinUser + "님이 대화에 참가했습니다.");
+                systemReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(invite);
+            }
+            String messageID = systemReference.push().getKey();
             message.put("name", "System");
             message.put("email", "System");
             message.put("photo", "System");
@@ -251,7 +260,7 @@ public class GroupChatActivity extends AppCompatActivity {
             message.put("unReadUserList", null);
             message.put("messageID",messageID );
 
-            databaseReference.child(messageID).setValue(message);
+            systemReference.child(messageID).setValue(message);
         }
     }
 
