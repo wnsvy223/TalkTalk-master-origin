@@ -47,6 +47,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -89,7 +92,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         mRecyclerView = (RecyclerView)view.findViewById(R.id.ChatRoom);
 
-        //mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setHasFixedSize(true);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mLayoutManager.setReverseLayout(true);
         mLayoutManager.setStackFromEnd(true);
@@ -164,61 +167,48 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
             }
 
+            // firebase ui 에서는 이미 생성자에서 query로 참조 부분이 있기 때문에 같은 참조위치를 populateViewHolder 에서 새로 참조해서
+            // 값을 가져올 경우 뷰 위치 꼬임현상 발생.
             @Override
             protected void populateViewHolder(final ChatViewHolder viewHolder, Chat chat, int position) {
+                final String list_room_id = getRef(viewHolder.getAdapterPosition()).getKey();
+
                 if (viewHolder.getAdapterPosition() != RecyclerView.NO_POSITION) {
-                    final String list_room_id = getRef(viewHolder.getAdapterPosition()).getKey();
-
-                    Query query = FirebaseDatabase.getInstance().getReference("friendChatRoom").child(currentUid)
-                            .child(list_room_id).orderByChild("timestamp");
-                    query.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            String room = dataSnapshot.getKey();
-                            if(room.contains("Group@")){
-                                lassMessageQuery = mGroupMessageDatabase.child(room).limitToLast(1); //데이터 베이스 메시지 그룹 메시지 트리의 마지막메시지만 가져옴
-                            }else{
-                                lassMessageQuery = mMessageDatabase.child(room).limitToLast(1);  //데이터 베이스 메시지 1:1 메시지 트리의 마지막메시지만 가져옴
+                    viewHolder.setTimeStamp(chat.getTimestamp()); // 타임스탬프 세팅
+                    viewHolder.setBadgeCount(String.valueOf(chat.getBadgeCount())); // 배지카운트 세팅
+                    viewHolder.setMessage(chat.getLastMessage(),chat.getType()); // 마지막 메시지 세팅 및 타입값
+                    if (list_room_id.contains("Group")) {
+                        viewHolder.setUserNameGroup(chat.getJoin(), currentName); // 참가자 리스트
+                        viewHolder.setUserNum(String.valueOf(chat.getJoinUserKey().size())); // 참가자 수
+                        List<String> joinUserKey = chat.getJoinUserKey();
+                        for(int i=0; i<joinUserKey.size()-1; i++) {
+                            if (joinUserKey.get(i).equals(currentUid)) {
+                                joinUserKey.remove(currentUid);
+                            } //리스트 원소중 내 키값은 삭제.
+                        }
+                        viewHolder.setGroupPhoto(joinUserKey, getContext(),position);
+                    }else{
+                        mUsersDatabase.child(list_room_id).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.hasChildren()) {
+                                    String userName = dataSnapshot.child("name").getValue().toString();
+                                    viewHolder.setName(userName);
+                                    String userPhoto = dataSnapshot.child("photo").getValue().toString();
+                                    if(isValidContextForGlide(getContext())) {
+                                        viewHolder.setUserImage(userPhoto, getContext());
+                                    }
+                                }
                             }
-                            lassMessageQuery.addChildEventListener(new ChildEventListener() {
-                                @Override
-                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                    Chat chat = dataSnapshot.getValue(Chat.class);
-                                    String text = chat.getText();
-                                    String type = chat.getType();
-                                    String time = chat.getTime();
-                                    viewHolder.setMessage(text, type);
-                                    viewHolder.setTimeStamp(time);
-                                }
 
-                                @Override
-                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
 
-                                }
+                            }
+                        });
+                    }
 
-                                @Override
-                                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                                }
-
-                                @Override
-                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
+/*
                     mConversationMe.child(list_room_id).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -243,68 +233,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
                         }
                     });
-
-                    mUsersDatabase.child(list_room_id).addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.hasChildren()) {
-                                String userName = dataSnapshot.child("name").getValue().toString();
-                                viewHolder.setName(userName);
-                                String userPhoto = dataSnapshot.child("photo").getValue().toString();
-                                if(isValidContextForGlide(getContext())) {
-                                    viewHolder.setUserImage(userPhoto, getContext());
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
-                    mConversationMe.child(list_room_id).child("joinUserKey").addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.hasChildren()) {
-                                String joinUserKey = dataSnapshot.getValue().toString();
-                                long count = dataSnapshot.getChildrenCount();
-                                if(isValidContextForGlide(getContext())) {
-                                    viewHolder.setUserImageGroup(joinUserKey, getContext(), currentUid, count, metrics.densityDpi);
-                                    //joinUserKey 노드로 부터 참가자들의 키값을 받아서 setUserImageGroup 메소드에 전달.
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
-
-                    mConversationMe.child(list_room_id).child("join").addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.hasChildren()) {
-                                String joinUser = dataSnapshot.getValue().toString();
-                                List<String> user = (List<String>) dataSnapshot.getValue();
-                                //viewHolder.setUserNameGroup(joinUser, currentName);
-                                viewHolder.setUserNameGroup(user,currentName);
-                                Log.d("그룹 참가 목록 : ", String.valueOf(user));
-                                if (list_room_id.contains("Group")) {
-                                    viewHolder.setUserNum(String.valueOf(dataSnapshot.getChildrenCount()));
-                                    //참가유저 목록 노드를 참조해서 자식노드 수(채팅 참가 유저 수) 뷰 표시
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
+*/
 
                     //채팅방 이동
                     viewHolder.mView.setOnClickListener(new View.OnClickListener() {
@@ -422,6 +351,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                 }
             }
         };
+
         mRecyclerView.setAdapter(firebaseConvAdapter);
 
     }
@@ -514,152 +444,46 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             }
         }
 
-        public void setUserImageGroup(String user_key, Context context, String myPhoto, long count, int dpi){
-
+        public void setGroupPhoto(List<String> joinUserKey,Context context, int position){
             CircleImageView userImageView1 = (CircleImageView) mView.findViewById(R.id.user_single_image1);
             CircleImageView userImageView2 = (CircleImageView) mView.findViewById(R.id.user_single_image2);
             CircleImageView userImageView3 = (CircleImageView) mView.findViewById(R.id.user_single_image3);
             CircleImageView userImageView4 = (CircleImageView) mView.findViewById(R.id.user_single_image4);
             CircleImageView arrayUserImage[] = {userImageView1,userImageView2,userImageView3,userImageView4};
-            arrayUserImage[0].setVisibility(View.VISIBLE);
-            arrayUserImage[1].setVisibility(View.VISIBLE);
-            arrayUserImage[2].setVisibility(View.VISIBLE);
-            arrayUserImage[3].setVisibility(View.VISIBLE);
-            TextView userNameView = (TextView) mView.findViewById(R.id.user_group_name);
-            TextView userStatusView = (TextView) mView.findViewById(R.id.user_last_message);
+            arrayUserImage[0].setVisibility(View.INVISIBLE);
+            arrayUserImage[1].setVisibility(View.INVISIBLE);
+            arrayUserImage[2].setVisibility(View.INVISIBLE);
+            arrayUserImage[3].setVisibility(View.INVISIBLE);
 
-            int index = user_key.indexOf("[");
-            int index2 = user_key.indexOf("]");
-            String split = user_key.substring(index + 1);
-            String split2 = split.substring(0,index2 - 1);
-            String userImageList[] = split2.split(", ");
-            //인자로 받은 키값을 콤마 기준을 각각 하나씩 자른뒤 리스트에 넣음.
-            //키값 문자열(콤마가 포함된 문자열)의 경우 split으로 자를때 콤마앞부분의 공백값이 있어 공백값을 포함해서 자름.
+            if(joinUserKey.size() >= 4) {
+                arrayUserImage[0].setVisibility(View.VISIBLE);
+                arrayUserImage[1].setVisibility(View.VISIBLE);
+                arrayUserImage[2].setVisibility(View.VISIBLE);
+                arrayUserImage[3].setVisibility(View.VISIBLE);
+                for (int i = 0; i < 4; i++) {
+                    setImage(joinUserKey.get(i), context, arrayUserImage, i);
+                }
+            }else{
+                switch (joinUserKey.size()){
+                    case 3:
+                        arrayUserImage[0].setVisibility(View.VISIBLE);
+                        arrayUserImage[1].setVisibility(View.VISIBLE);
+                        arrayUserImage[2].setVisibility(View.VISIBLE);
+                        break;
+                    case 2:
+                        arrayUserImage[0].setVisibility(View.VISIBLE);
+                        arrayUserImage[1].setVisibility(View.VISIBLE);
+                        break;
+                    case 1:
+                        arrayUserImage[0].setVisibility(View.VISIBLE);
+                        break;
+                    default:
+                }
 
-            List<String> newList = new ArrayList<>();
-            if (context != null) {
-                if (userImageList.length > 4) {   //그룹채팅 인원이 4명 넘으면 사진 4개만 받기
-                    for (int i = 0; i < 4; i++) {
-                        Log.d("4이상" + "사진" + i + "번", userImageList[i]);
-                        Collections.addAll(newList, userImageList);
-                        if (userImageList[i].equals(myPhoto)) {
-                            newList.remove(userImageList[i]);
-                        } //리스트 원소중 내 키값은 삭제.
-                        setImage(newList.get(i), context, arrayUserImage, i);
-
-                        arrayUserImage[0].getLayoutParams().width = 90;
-                        arrayUserImage[1].getLayoutParams().height = 90;
-                        arrayUserImage[0].setY(45);
-                        arrayUserImage[1].setY(45);
-                        arrayUserImage[2].setX(45);
-                        userNameView.setTranslationX(-5);
-                        userStatusView.setTranslationX(-5);
-                    }
-                } else {  //4명 이하면 인원만큼만 가져오기
-                    for (int i = 0; i < userImageList.length - 1; i++) {
-                        Log.d("4이하" + "사진" + i + "번", userImageList[i] + "길이:" + count);
-                        Collections.addAll(newList, userImageList);
-                        if (userImageList[i].equals(myPhoto)) {
-                            newList.remove(userImageList[i]);
-                        }
-                        setImage(newList.get(i), context, arrayUserImage, i);
-                        switch (dpi) {
-                            case 480:
-                                if(count == 3) {  //이미지뷰2개
-                                    arrayUserImage[0].getLayoutParams().height = 90;
-                                    arrayUserImage[0].getLayoutParams().width = 90;
-                                    arrayUserImage[1].getLayoutParams().height = 90;
-                                    arrayUserImage[1].getLayoutParams().width = 90;
-                                    arrayUserImage[0].setTranslationY(52);
-                                    arrayUserImage[1].setTranslationY(52);
-                                    userNameView.setTranslationX(-5);
-                                    userStatusView.setTranslationX(-5);
-                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                }else if (count == 4) { //이미지뷰3개
-                                    arrayUserImage[0].setTranslationY(0);
-                                    arrayUserImage[1].setTranslationY(0);
-                                    arrayUserImage[2].setTranslationX(52);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                }else if(count == 2){ //이미지뷰1개
-                                    arrayUserImage[0].setTranslationX(3);
-                                    arrayUserImage[0].setTranslationY(3);
-                                    arrayUserImage[0].getLayoutParams().height = 160;
-                                    arrayUserImage[0].getLayoutParams().width = 160;
-                                    arrayUserImage[1].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                    userNameView.setTranslationX(-70);
-                                    userStatusView.setTranslationX(-70);
-                                } //채팅방 유저 이미지뷰들을 인원수에 따라 동적으로 INVISIBLE처리 및 위치 이동
-                                break;
-                            case 560:
-                                if(count == 3) { //이미지뷰2개
-                                    arrayUserImage[0].getLayoutParams().height = 110;
-                                    arrayUserImage[0].getLayoutParams().width = 110;
-                                    arrayUserImage[1].getLayoutParams().height = 110;
-                                    arrayUserImage[1].getLayoutParams().width = 110;
-                                    arrayUserImage[0].setTranslationY(55);
-                                    arrayUserImage[1].setTranslationY(55);
-                                    userNameView.setTranslationX(-10);
-                                    userStatusView.setTranslationX(-10);
-                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                }else if (count == 4) {//이미지뷰3개
-                                    arrayUserImage[0].setTranslationY(0);
-                                    arrayUserImage[1].setTranslationY(0);
-                                    arrayUserImage[2].setTranslationX(55);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                }else if(count == 2){ //이미지뷰1개
-                                    arrayUserImage[0].setTranslationX(5);
-                                    arrayUserImage[0].setTranslationY(5);
-                                    arrayUserImage[0].getLayoutParams().height = 195;
-                                    arrayUserImage[0].getLayoutParams().width = 195;
-                                    arrayUserImage[1].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                    userNameView.setTranslationX(-80);
-                                    userStatusView.setTranslationX(-80);
-                                } //채팅방 유저 이미지뷰들을 인원수에 따라 동적으로 INVISIBLE처리 및 위치 이동
-                                break;
-                            case 640:
-                                if(count == 3) { //이미지뷰2개
-                                    Log.d("2개", String.valueOf(arrayUserImage[0].getY()));
-                                    arrayUserImage[0].getLayoutParams().height = 120;
-                                    arrayUserImage[0].getLayoutParams().width = 120;
-                                    arrayUserImage[1].getLayoutParams().height = 120;
-                                    arrayUserImage[1].getLayoutParams().width = 120;
-                                    arrayUserImage[0].setTranslationY(60);
-                                    arrayUserImage[1].setTranslationY(60);
-                                    userNameView.setTranslationX(-10);
-                                    userStatusView.setTranslationX(-10);
-                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                }else if (count == 4) {//이미지뷰3개
-                                    Log.d("3개", String.valueOf(arrayUserImage[0].getY()));
-                                    arrayUserImage[0].setTranslationY(0);
-                                    arrayUserImage[1].setTranslationY(0);
-                                    arrayUserImage[2].setTranslationX(60);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                }else if(count == 2){ //이미지뷰1개
-                                    Log.d("1개", String.valueOf(arrayUserImage[0].getY()));
-                                    arrayUserImage[0].setTranslationX(5);
-                                    arrayUserImage[0].setTranslationY(5);
-                                    arrayUserImage[0].getLayoutParams().height = 220;
-                                    arrayUserImage[0].getLayoutParams().width = 220;
-                                    arrayUserImage[1].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[2].setVisibility(View.INVISIBLE);
-                                    arrayUserImage[3].setVisibility(View.INVISIBLE);
-                                    userNameView.setTranslationX(-80);
-                                    userStatusView.setTranslationX(-80);
-                                } //채팅방 유저 이미지뷰들을 인원수에 따라 동적으로 INVISIBLE처리 및 위치 이동
-                                break;
-                            default:
-                        }
-                    }
+                for (int i = 0; i < joinUserKey.size(); i++) {
+                    setImage(joinUserKey.get(i), context, arrayUserImage, i);
                 }
             }
-
         }
 
         public void setTimeStamp(String time){
@@ -698,8 +522,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             databaseReference.child(key).child("photo").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    //Glide.clear(arrayUserImage[i]);
-                    //Glide.get(context).clearMemory();
                     String image = dataSnapshot.getValue().toString();
                     if(TextUtils.isEmpty(image)){
                         Glide.with(context)

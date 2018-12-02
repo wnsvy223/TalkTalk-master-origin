@@ -21,9 +21,17 @@ public class Chat {
     private int unReadCount;
     private String messageID;
     private boolean seen;
+    private long badgeCount;
+    private String timestamp;
+    private String lastMessage;
+    private List<String> join;
+    private List<String> joinUserKey;
+    private List<String> joinUserPhoto;
 
-
-    public Chat(String email, String text, String photo, String time, String key, String userNumber,String type, List<String> unReadUserList, int unReadCount,String messageID,boolean seen) {
+    public Chat(String email, String text, String photo, String time,
+                String key, String userNumber,String type, List<String> unReadUserList,
+                int unReadCount,String messageID,boolean seen,long badgeCount,String timestamp,String lastMessage,
+                List<String> join , List<String> joinUserKey, List<String> joinUserPhoto) {
         this.email = email;
         this.text = text;
         this.photo = photo;
@@ -35,7 +43,12 @@ public class Chat {
         this.unReadCount = unReadCount;
         this.messageID = messageID;
         this.seen = seen;
-
+        this.badgeCount = badgeCount;
+        this.timestamp = timestamp;
+        this.lastMessage = lastMessage;
+        this.join = join;
+        this.joinUserKey = joinUserKey;
+        this.joinUserPhoto = joinUserPhoto;
     }
 
     public Chat() {
@@ -138,4 +151,51 @@ public class Chat {
         this.seen = seen;
     }
 
+    public long getBadgeCount() {
+        return badgeCount;
+    }
+
+    public void setBadgeCount(long badgeCount) {
+        this.badgeCount = badgeCount;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
+    public List<String> getJoin() {
+        return join;
+    }
+
+    public void setJoin(List<String> join) {
+        this.join = join;
+    }
+
+    public List<String> getJoinUserKey() {
+        return joinUserKey;
+    }
+
+    public void setJoinUserKey(List<String> joinUserKey) {
+        this.joinUserKey = joinUserKey;
+    }
+
+    public List<String> getJoinUserPhoto() {
+        return joinUserPhoto;
+    }
+
+    public void setJoinUserPhoto(List<String> joinUserPhoto) {
+        this.joinUserPhoto = joinUserPhoto;
+    }
 }

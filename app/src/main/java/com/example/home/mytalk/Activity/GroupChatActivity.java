@@ -227,10 +227,10 @@ public class GroupChatActivity extends AppCompatActivity {
 
                 if(!TextUtils.isEmpty(invite) && !isFirst) {  //시스템 메시지는 생성되어있는 대화방으로의 초대 경우에만 호출
                     checkUser.remove(currentUserName);
-                    setSystemMessage(checkUser,invite,false);
+                    setSystemMessage(checkUser,invite,false, checkKey);
                 }else{ // 대화방 신규 생성시 대화방생성 메시지 시스템메시지 호출
                     String roomNode = "Group@" + "+" + inviteUserNum + "+" + currentUid + "+" + formattedDate;
-                    setSystemMessage(checkUser,roomNode,true);
+                    setSystemMessage(checkUser,roomNode,true, checkKey);
                 }
                 this.finish();
                 return true;
@@ -239,12 +239,22 @@ public class GroupChatActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setSystemMessage(List<String> joinUser, String roomNode, boolean first){
+    public void setSysMessageForRoom(List<String> joinUserKey,String roomNode){
+        for(int i=0; i<joinUserKey.size(); i++){
+            roomNodeReference.child(joinUserKey.get(i)).child(roomNode).child("lastMessage").setValue("대화방이 생성되었습니다.");
+            roomNodeReference.child(joinUserKey.get(i)).child(roomNode).child("type").setValue("System");
+        }
+    }
+
+    private void setSystemMessage(List<String> joinUser, String roomNode, boolean first, List<String> joinUserKey){
         if(joinUser.size() > 0) {
             HashMap message = new HashMap();
             if(first){
                 message.put("text", "대화방이 생성되었습니다.");
                 systemReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(roomNode);
+                if(joinUserKey != null) {
+                    setSysMessageForRoom(joinUserKey, roomNode);
+                }
             }else{
                 message.put("text", joinUser + "님이 대화에 참가했습니다.");
                 systemReference = FirebaseDatabase.getInstance().getReference("groupMessage").child(invite);
@@ -259,7 +269,6 @@ public class GroupChatActivity extends AppCompatActivity {
             message.put("unReadCount", 0);
             message.put("unReadUserList", null);
             message.put("messageID",messageID );
-
             systemReference.child(messageID).setValue(message);
         }
     }

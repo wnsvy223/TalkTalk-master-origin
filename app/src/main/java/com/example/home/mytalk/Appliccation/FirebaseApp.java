@@ -102,11 +102,15 @@ public class FirebaseApp extends Application {
         FriendChatRoom.child(currentUid).child(FriendChatUid).child("seen").setValue(false);
         FriendChatRoom.child(currentUid).child(FriendChatUid).child("timestamp").setValue(formattedDate);
         FriendChatRoom.child(currentUid).child(FriendChatUid).child("Roomtype").setValue("OneToOne");
+        FriendChatRoom.child(currentUid).child(FriendChatUid).child("lastMessage").setValue(messageText);
+        FriendChatRoom.child(currentUid).child(FriendChatUid).child("type").setValue(type);
         mChatReference.child(currentUid).child(FriendChatUid).child(messageId).setValue(message);
 
         FriendChatRoom.child(FriendChatUid).child(currentUid).child("seen").setValue(false);
         FriendChatRoom.child(FriendChatUid).child(currentUid).child("timestamp").setValue(formattedDate);
         FriendChatRoom.child(FriendChatUid).child(currentUid).child("Roomtype").setValue("OneToOne");
+        FriendChatRoom.child(FriendChatUid).child(currentUid).child("lastMessage").setValue(messageText);
+        FriendChatRoom.child(FriendChatUid).child(currentUid).child("type").setValue(type);
         mChatReference.child(FriendChatUid).child(currentUid).child(messageId).setValue(message);
 
         // 해당유저와 1:1채팅 메시지를 전송하면 해당유저와의 대화창 목록을
@@ -144,7 +148,7 @@ public class FirebaseApp extends Application {
 
     }
 
-    public void setGroupMessage(String messageText, String type, final String FriendChatUid, ArrayList<String> unReadUserList) {
+    public void setGroupMessage(final String messageText, final String type, final String FriendChatUid, ArrayList<String> unReadUserList) {
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
         formattedDate = simpleDateFormat.format(calendar.getTime());
@@ -173,6 +177,7 @@ public class FirebaseApp extends Application {
                     for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                         String key = postSnapshot.getValue().toString();
                         resetTimeStamp(key,FriendChatUid);
+                        setLastMessage(key,FriendChatUid,messageText,type);
                         // 채팅이 쓰여질때마다 현재 채팅방의 참가자들의 키값을 받아와서
                         // 각 참가자들의 채팅방 노드의 타임스템프값을 현재시간으로 바꿔주어
                         // 타임스탬프값이 가장 최근인 채팅방을 맨 위쪽으로 정렬.
@@ -192,6 +197,7 @@ public class FirebaseApp extends Application {
 
             }
         });
+
     }
 
     public void setOpenMessage(String messageText, String type){
@@ -235,11 +241,13 @@ public class FirebaseApp extends Application {
     }
 
     public void resetTimeStamp(String key, String FriendChatUid) { // 타임스탬프 시간값 최신값으로 Reset 함수
-        FriendChatRoom
-                .child(key)
-                .child(FriendChatUid)
-                .child("timestamp")
-                .setValue(formattedDate);
+        FriendChatRoom.child(key).child(FriendChatUid).child("timestamp").setValue(formattedDate);
+    }
+
+    public void setLastMessage(String key, String FriendChatUid, String lastMessage, String type){
+        FriendChatRoom.child(key).child(FriendChatUid).child("lastMessage").setValue(lastMessage);
+        FriendChatRoom.child(key).child(FriendChatUid).child("type").setValue(type);
+        // 채팅방 목록화면에서 채팅메시지 참조를 위해 메시지 입력 시 채팅방 노드에도 마지막메시지만 갱신
     }
 
 }
