@@ -30,6 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -84,7 +85,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
     public int type;
     private FirebaseRecyclerAdapter<Chat,ChatViewHolder> firebaseConvAdapter;
     public DisplayMetrics metrics;
-    private Query lassMessageQuery;
+
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -171,8 +172,8 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             // 값을 가져올 경우 뷰 위치 꼬임현상 발생.
             @Override
             protected void populateViewHolder(final ChatViewHolder viewHolder, Chat chat, int position) {
-                final String list_room_id = getRef(viewHolder.getAdapterPosition()).getKey();
 
+                final String list_room_id = getRef(viewHolder.getAdapterPosition()).getKey();
                 if (viewHolder.getAdapterPosition() != RecyclerView.NO_POSITION) {
                     viewHolder.setTimeStamp(chat.getTimestamp()); // 타임스탬프 세팅
                     viewHolder.setBadgeCount(String.valueOf(chat.getBadgeCount())); // 배지카운트 세팅
@@ -181,12 +182,8 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                         viewHolder.setUserNameGroup(chat.getJoin(), currentName); // 참가자 리스트
                         viewHolder.setUserNum(String.valueOf(chat.getJoinUserKey().size())); // 참가자 수
                         List<String> joinUserKey = chat.getJoinUserKey();
-                        for(int i=0; i<joinUserKey.size()-1; i++) {
-                            if (joinUserKey.get(i).equals(currentUid)) {
-                                joinUserKey.remove(currentUid);
-                            } //리스트 원소중 내 키값은 삭제.
-                        }
-                        viewHolder.setGroupPhoto(joinUserKey, getContext(),position);
+                        joinUserKey.remove(currentUid); // 리스트에서 내 키값은 삭제
+                        viewHolder.setGroupPhoto(joinUserKey, getContext()); // 참가자 프로필사진 세팅
                     }else{
                         mUsersDatabase.child(list_room_id).addValueEventListener(new ValueEventListener() {
                             @Override
@@ -359,7 +356,7 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
 
     public static class ChatViewHolder extends RecyclerView.ViewHolder {
 
-        View mView;
+        private View mView;
 
         private ChatViewHolder(View itemView) {
             super(itemView);
@@ -444,44 +441,60 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             }
         }
 
-        public void setGroupPhoto(List<String> joinUserKey,Context context, int position){
-            CircleImageView userImageView1 = (CircleImageView) mView.findViewById(R.id.user_single_image1);
-            CircleImageView userImageView2 = (CircleImageView) mView.findViewById(R.id.user_single_image2);
-            CircleImageView userImageView3 = (CircleImageView) mView.findViewById(R.id.user_single_image3);
-            CircleImageView userImageView4 = (CircleImageView) mView.findViewById(R.id.user_single_image4);
-            CircleImageView arrayUserImage[] = {userImageView1,userImageView2,userImageView3,userImageView4};
-            arrayUserImage[0].setVisibility(View.INVISIBLE);
-            arrayUserImage[1].setVisibility(View.INVISIBLE);
-            arrayUserImage[2].setVisibility(View.INVISIBLE);
-            arrayUserImage[3].setVisibility(View.INVISIBLE);
+        // 리사이클러뷰 재사용시 VISIBLE/INVISIBLE 처리는 바로 적용되는데, setXY, setTranslatinXY같은 뷰 이동 메소드는
+        // 뷰홀더 바인딩 시 바로 적용이안되고 뷰가 꼬임. ( => 이미지뷰를 추가해서 INVISIBLE처리후 위치가 변경/추가된 이미지에 세팅하는방법으로 임시 구현
+        public void setGroupPhoto(List<String> joinUserKey, Context context){
+            CircleImageView userImageView0 = userImageView0 = (CircleImageView) mView.findViewById(R.id.user_single_image1);
+            CircleImageView userImageView1 = userImageView1 = (CircleImageView) mView.findViewById(R.id.user_single_image2);
+            CircleImageView userImageView2 = userImageView2 = (CircleImageView) mView.findViewById(R.id.user_single_image3);
+            CircleImageView userImageView3 = userImageView3 = (CircleImageView) mView.findViewById(R.id.user_single_image4);
+            CircleImageView userImageViewTemp1 = userImageViewTemp1 = (CircleImageView) mView.findViewById(R.id.user_single_image_temp1);
+            CircleImageView userImageViewTemp2 = userImageViewTemp2 = (CircleImageView) mView.findViewById(R.id.user_single_image_temp2);
+            CircleImageView userImageViewTemp3 = userImageViewTemp3 = (CircleImageView) mView.findViewById(R.id.user_single_image_temp3);
+            CircleImageView userImageViewTempOne = userImageViewTempOne = (CircleImageView) mView.findViewById(R.id.user_single_image_temp_one);
 
+            CircleImageView arrayUserImage[] = {userImageView0,userImageView1,userImageView2,userImageView3,
+                    userImageViewTemp1, userImageViewTemp2, userImageViewTemp3, userImageViewTempOne};
+
+            for(CircleImageView circleImageView : arrayUserImage){
+                circleImageView.setVisibility(View.INVISIBLE); // 배열안의 모든 이미지뷰 invisible
+            }
             if(joinUserKey.size() >= 4) {
                 arrayUserImage[0].setVisibility(View.VISIBLE);
                 arrayUserImage[1].setVisibility(View.VISIBLE);
                 arrayUserImage[2].setVisibility(View.VISIBLE);
                 arrayUserImage[3].setVisibility(View.VISIBLE);
                 for (int i = 0; i < 4; i++) {
-                    setImage(joinUserKey.get(i), context, arrayUserImage, i);
+                    setImage(joinUserKey.get(i), context, arrayUserImage, i , joinUserKey.size());
                 }
             }else{
                 switch (joinUserKey.size()){
                     case 3:
                         arrayUserImage[0].setVisibility(View.VISIBLE);
                         arrayUserImage[1].setVisibility(View.VISIBLE);
-                        arrayUserImage[2].setVisibility(View.VISIBLE);
+                        arrayUserImage[2].setVisibility(View.INVISIBLE);
+                        arrayUserImage[3].setVisibility(View.INVISIBLE);
+                        arrayUserImage[4].setVisibility(View.VISIBLE); // temp_1번
                         break;
                     case 2:
-                        arrayUserImage[0].setVisibility(View.VISIBLE);
-                        arrayUserImage[1].setVisibility(View.VISIBLE);
+                        arrayUserImage[0].setVisibility(View.INVISIBLE);
+                        arrayUserImage[1].setVisibility(View.INVISIBLE);
+                        arrayUserImage[5].setVisibility(View.VISIBLE); //temp_2번
+                        arrayUserImage[6].setVisibility(View.VISIBLE); //temp_3번
                         break;
                     case 1:
-                        arrayUserImage[0].setVisibility(View.VISIBLE);
+                        arrayUserImage[0].setVisibility(View.INVISIBLE);
+                        arrayUserImage[7].setVisibility(View.VISIBLE); // temp_one
                         break;
                     default:
+                        arrayUserImage[0].setVisibility(View.VISIBLE);
+                        arrayUserImage[1].setVisibility(View.VISIBLE);
+                        arrayUserImage[2].setVisibility(View.VISIBLE);
+                        arrayUserImage[3].setVisibility(View.VISIBLE);
                 }
 
                 for (int i = 0; i < joinUserKey.size(); i++) {
-                    setImage(joinUserKey.get(i), context, arrayUserImage, i);
+                    setImage(joinUserKey.get(i), context, arrayUserImage, i , joinUserKey.size());
                 }
             }
         }
@@ -490,7 +503,6 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             TextView TimeStamp = (TextView) mView.findViewById(R.id.time_stamp);
             if(TextUtils.isEmpty(time)){
                 TimeStamp.setVisibility(View.INVISIBLE);
-                //TimeStamp.setText("");
             }else {
                 TimeStamp.setVisibility(View.VISIBLE);
                 TimeStamp.setText(time);
@@ -516,26 +528,25 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
             }
         }
 
-        private void setImage(String key, final Context context, final CircleImageView arrayUserImage[], final int i){
+        private void setImage(String key, final Context context, final CircleImageView arrayUserImage[], final int i, final int size){
 
             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
             databaseReference.child(key).child("photo").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     String image = dataSnapshot.getValue().toString();
-                    if(TextUtils.isEmpty(image)){
-                        Glide.with(context)
-                                .load(R.drawable.ic_unknown_user)
-                                .dontAnimate()
-                                .transform(new CircleTransform(context), new FitCenter(context)).into(arrayUserImage[i]);
-                    }else {
-                        Glide.with(context)
-                                .load(image)
-                                .dontAnimate()
-                                .transform(new CircleTransform(context), new FitCenter(context)).into(arrayUserImage[i]);
-                        // 리스트의 각 원소들의 값(참가 유저들의 키값)의 사진값을 Glide를 사용하여
-                        // CircleImageView 배열에 하나씩 순서대로 넣음
-                        // 리스너 내부에서 세팅되기때문에 해당유저가 프로필사진 변경시 채팅목록의 해당유저의 이미지뷰도 갱신
+                    setGlideImage(image,context,arrayUserImage,i);
+                    switch (size){
+                        case 3:
+                            setGlideImage(image,context,arrayUserImage,i,2);
+                            break;
+                        case 2:
+                            setGlideImage(image,context,arrayUserImage,i,5);
+                            break;
+                        case 1:
+                            setGlideImage(image,context,arrayUserImage,i,7);
+                            break;
+                        default:
                     }
                 }
 
@@ -545,6 +556,41 @@ public class Fragment_Chat extends android.support.v4.app.Fragment {
                 }
             });
         }
+
+        private void setGlideImage(String image, Context context, CircleImageView arrayUserImage[], int i){
+            if(TextUtils.isEmpty(image)){
+                Glide.with(context)
+                        .load(R.drawable.ic_unknown_user)
+                        .dontAnimate()
+                        .transform(new CircleTransform(context), new FitCenter(context)).into(arrayUserImage[i]);
+            }else {
+                Glide.with(context)
+                        .load(image)
+                        .dontAnimate()
+                        .transform(new CircleTransform(context), new FitCenter(context)).into(arrayUserImage[i]);
+                // 리스트의 각 원소들의 값(참가 유저들의 키값)의 사진값을 Glide를 사용하여
+                // CircleImageView 배열에 하나씩 순서대로 넣음
+                // 리스너 내부에서 세팅되기때문에 해당유저가 프로필사진 변경시 채팅목록의 해당유저의 이미지뷰도 갱신
+            }
+        }
+
+        private void setGlideImage(String image, Context context, CircleImageView arrayUserImage[], int i, int moveIndex){
+            if(TextUtils.isEmpty(image)){
+                Glide.with(context)
+                        .load(R.drawable.ic_unknown_user)
+                        .dontAnimate()
+                        .transform(new CircleTransform(context), new FitCenter(context)).into(arrayUserImage[i + moveIndex]);
+            }else {
+                Glide.with(context)
+                        .load(image)
+                        .dontAnimate()
+                        .transform(new CircleTransform(context), new FitCenter(context)).into(arrayUserImage[i + moveIndex]);
+                // 리스트의 각 원소들의 값(참가 유저들의 키값)의 사진값을 Glide를 사용하여
+                // CircleImageView 배열에 하나씩 순서대로 넣음
+                // 리스너 내부에서 세팅되기때문에 해당유저가 프로필사진 변경시 채팅목록의 해당유저의 이미지뷰도 갱신
+            }
+        }
+
 
     }
 

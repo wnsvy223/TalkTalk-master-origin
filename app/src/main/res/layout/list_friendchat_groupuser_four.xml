@@ -9,7 +9,6 @@
         android:id="@+id/user_single_image1"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_marginLeft="15dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="15dp"
@@ -19,7 +18,7 @@
         android:id="@+id/user_single_image2"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_marginLeft="3dp"
+        android:layout_marginStart="3dp"
         android:layout_alignTop="@+id/user_single_image1"
         android:layout_toEndOf="@+id/user_single_image1" />
 
@@ -37,9 +36,39 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_marginTop="3dp"
-        android:layout_marginLeft="3dp"
+        android:layout_marginStart="3dp"
         android:layout_toStartOf="@+id/user_group_name"
         android:layout_below="@+id/user_single_image2" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/user_single_image_temp1"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignTop="@+id/user_single_image3"
+        android:layout_marginStart="32dp" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/user_single_image_temp2"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignStart="@+id/user_single_image1"
+        android:layout_centerVertical="true" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/user_single_image_temp3"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignStart="@+id/user_single_image2"
+        android:layout_centerVertical="true" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/user_single_image_temp_one"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_alignStart="@+id/user_single_image1"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="4dp" />
 
     <TextView
         android:id="@+id/user_group_name"
@@ -72,7 +101,7 @@
         android:layout_width="8dp"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/user_group_name"
-        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
         android:layout_toEndOf="@+id/user_group_name"
         android:visibility="invisible"
         app:srcCompat="@drawable/online_icon" />
