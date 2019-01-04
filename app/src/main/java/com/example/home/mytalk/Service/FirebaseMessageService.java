@@ -1,5 +1,6 @@
 package com.example.home.mytalk.Service;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -49,6 +50,7 @@ public class FirebaseMessageService extends FirebaseMessagingService {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private String currentUid;
     private String currentEmail;
+    private NotificationManager notificationManager;
 
     @Override
     public void onMessageReceived(final RemoteMessage remoteMessage) {
@@ -73,7 +75,7 @@ public class FirebaseMessageService extends FirebaseMessagingService {
                 }); // 데이터베이스 Rule이 인증된 유저만 가능하도록 했기때문에 푸시메시지 받았을때 인증처리 로직 추가 수행.
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE );
-        PowerManager.WakeLock wakeLock = pm.newWakeLock( PowerManager.PARTIAL_WAKE_LOCK
+        @SuppressLint("InvalidWakeLockTag") PowerManager.WakeLock wakeLock = pm.newWakeLock( PowerManager.PARTIAL_WAKE_LOCK
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG" );
         wakeLock.acquire(3000);
         // PARTIAL_WAKE_LOCK : 화면을 깨우지 않고 잠금화면에 푸시 알림 표시 및 진동&소리 제공
@@ -166,16 +168,20 @@ public class FirebaseMessageService extends FirebaseMessagingService {
 
     private void setNotification(String tag, String photoUrl, String title, String body, String clickAction, String from_value) {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {  // Oreo 노티채널
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            NotificationChannel notificationChannel = new NotificationChannel("channel_id", "channel_name", NotificationManager.IMPORTANCE_DEFAULT);
-            notificationChannel.setDescription("channel description");
-            notificationChannel.enableLights(true);
-            notificationChannel.setLightColor(Color.GREEN);
-            notificationChannel.enableVibration(true);
-            notificationChannel.setVibrationPattern(new long[]{100, 200, 100, 200});
-            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-            notificationManager.createNotificationChannel(notificationChannel);
+        notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        String CHANNEL_ID = "my_channel_01";
+        CharSequence name = "my_channel";
+        String Description = "This is my channel";
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+            mChannel.setDescription(Description);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.RED);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
         }
 
         Bitmap bitmap = null;
@@ -270,6 +276,7 @@ public class FirebaseMessageService extends FirebaseMessagingService {
                     .setLargeIcon(bitmap)
                     .setContentTitle(title)
                     .setContentText(Body)
+                    .setChannelId(CHANNEL_ID)
                     .addAction(replyAction)
                     .addAction(dismissAction)
                     .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE) //노티 사운드. 진동 설정
