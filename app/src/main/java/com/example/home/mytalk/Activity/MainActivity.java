@@ -13,12 +13,13 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-
+import com.example.home.mytalk.Appliccation.FirebaseApp;
 import com.example.home.mytalk.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     public CheckBox checkBox;
     public String currentUid;
     public static Context mContext;
-
+    private FirebaseApp firebaseApp;
 
 
     @Override
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
+        firebaseApp = (FirebaseApp)getApplicationContext(); //공통 클래스 초기화
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -121,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     public void userLogin(String email, String password) {
         mAuth = FirebaseAuth.getInstance();
         mAuth.signInWithEmailAndPassword(email, password)
@@ -131,8 +132,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "signInWithEmail:onComplete:" + task.isSuccessful());
                         if (!task.isSuccessful()) {
                             Log.w(TAG, "signInWithEmail:failed", task.getException());
-                            Toast.makeText(MainActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
-
+                            firebaseApp.checkAccount(task, editText_email, editText_password); // 계정 유효성 체크
                             PBLogin.setVisibility(View.GONE);
                         } else {
                             if(checkBox.isChecked()) { //자동로그인 체크박스 체크되있으면 자동로그인 정보 저장

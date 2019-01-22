@@ -20,6 +20,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,6 +29,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.example.home.mytalk.Appliccation.FirebaseApp;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -54,7 +56,7 @@ public class RegisterActivity extends AppCompatActivity {
     private String stPassword;
     private String stPhone;
     private String stName;
-
+    private FirebaseApp firebaseApp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
+        firebaseApp = (FirebaseApp)getApplicationContext(); //공통 클래스 초기화
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -136,7 +139,6 @@ public class RegisterActivity extends AppCompatActivity {
 
     }
 
-
     public void registerUser(String email, String password, final String phone, final String name){
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -145,7 +147,7 @@ public class RegisterActivity extends AppCompatActivity {
                         Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
 
                         if (!task.isSuccessful()) {
-                            Toast.makeText(RegisterActivity.this, "가입 실패", Toast.LENGTH_SHORT).show();
+                            firebaseApp.checkAccount(task, Email, PassWord); // 계정 유효성 체크
                         }else{
                             String deviceToken = FirebaseInstanceId.getInstance().getToken();
                             if (user != null) {

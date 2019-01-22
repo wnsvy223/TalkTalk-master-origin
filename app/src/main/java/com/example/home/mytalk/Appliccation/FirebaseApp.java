@@ -4,9 +4,13 @@ import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.home.mytalk.Model.Friend;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -249,5 +253,88 @@ public class FirebaseApp extends Application {
         FriendChatRoom.child(key).child(FriendChatUid).child("type").setValue(type);
         // 채팅방 목록화면에서 채팅메시지 참조를 위해 메시지 입력 시 채팅방 노드에도 마지막메시지만 갱신
     }
+
+    public void checkAccount(Task<AuthResult> task, EditText email, EditText password){ // Firebase auth의 예외처리 에러코드를 이용하여 계정 유효성 체크
+        String errorCode = ((FirebaseAuthException) task.getException()).getErrorCode();
+
+        switch (errorCode) {
+            case "ERROR_INVALID_CUSTOM_TOKEN":
+                Toast.makeText(getApplicationContext(), "The custom token format is incorrect. Please check the documentation.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_CUSTOM_TOKEN_MISMATCH":
+                Toast.makeText(getApplicationContext(), "The custom token corresponds to a different audience.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_INVALID_CREDENTIAL":
+                Toast.makeText(getApplicationContext(), "The supplied auth credential is malformed or has expired.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_INVALID_EMAIL":
+                Toast.makeText(getApplicationContext(), "The email address is badly formatted.", Toast.LENGTH_LONG).show();
+                email.setError("잘못된 형식의 이메일 입니다.");
+                email.requestFocus();
+                break;
+
+            case "ERROR_WRONG_PASSWORD":
+                Toast.makeText(getApplicationContext(), "The password is invalid or the user does not have a password.", Toast.LENGTH_LONG).show();
+                password.setError("비밀번호가 틀렸습니다.");
+                password.requestFocus();
+                password.setText("");
+                break;
+
+            case "ERROR_USER_MISMATCH":
+                Toast.makeText(getApplicationContext(), "The supplied credentials do not correspond to the previously signed in user.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_REQUIRES_RECENT_LOGIN":
+                Toast.makeText(getApplicationContext(), "This operation is sensitive and requires recent authentication. Log in again before retrying this request.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL":
+                Toast.makeText(getApplicationContext(), "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_EMAIL_ALREADY_IN_USE":
+                Toast.makeText(getApplicationContext(), "The email address is already in use by another account.   ", Toast.LENGTH_LONG).show();
+                email.setError("동일한 이메일이 이미 사용중입니다.");
+                email.requestFocus();
+                break;
+
+            case "ERROR_CREDENTIAL_ALREADY_IN_USE":
+                Toast.makeText(getApplicationContext(), "This credential is already associated with a different user account.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_USER_DISABLED":
+                Toast.makeText(getApplicationContext(), "The user account has been disabled by an administrator.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_USER_TOKEN_EXPIRED":
+                Toast.makeText(getApplicationContext(), "The user\\'s credential is no longer valid. The user must sign in again.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_USER_NOT_FOUND":
+                Toast.makeText(getApplicationContext(), "There is no user record corresponding to this identifier. The user may have been deleted.", Toast.LENGTH_LONG).show();
+                email.setError("가입된 사용자가 아닙니다. 가입을 진행해 주세요.");
+                email.requestFocus();
+                break;
+
+            case "ERROR_INVALID_USER_TOKEN":
+                Toast.makeText(getApplicationContext(), "The user\\'s credential is no longer valid. The user must sign in again.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_OPERATION_NOT_ALLOWED":
+                Toast.makeText(getApplicationContext(), "This operation is not allowed. You must enable this service in the console.", Toast.LENGTH_LONG).show();
+                break;
+
+            case "ERROR_WEAK_PASSWORD":
+                Toast.makeText(getApplicationContext(), "The given password is invalid.", Toast.LENGTH_LONG).show();
+                password.setError("비밀번호는 6글자 이상으로 만들어 주세요.");
+                password.requestFocus();
+                break;
+
+        }
+    }
+
 
 }
