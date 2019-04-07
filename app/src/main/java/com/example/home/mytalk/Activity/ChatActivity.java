@@ -271,7 +271,7 @@ public class ChatActivity extends AppCompatActivity {
                                     String bottomKey = keyList.get(totalItemCount); //현재 화면의 맨 아래 채팅노드 키값
                                     String topKey = keyList.get(topPosition - 1); //현재 화면의 맨 위 채팅노드 키값
                                     loadMoreMessage(mChatDisplayReference, bottomKey, topKey); //대화목록 추가 로딩
-                                }else if(keyList.size() != totalItemCount && (keyList.size() - totalItemCount) < 10){
+                                }else if(keyList.size() != totalItemCount && (keyList.size() - totalItemCount) <= 10){
                                     String lastBottomKey = keyList.get(totalItemCount);
                                     String lastTopKey = keyList.get(keyList.size() - 1);
                                     loadMoreMessage(mChatDisplayReference, lastBottomKey, lastTopKey);
