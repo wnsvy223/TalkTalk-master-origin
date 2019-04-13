@@ -40,8 +40,6 @@ public class FriendMapAdapter extends RecyclerView.Adapter<FriendMapAdapter.View
     private List<Friend> mFriend;
     public Context context;
     private String stPhoto;
-    private Query conversationQuery;
-    private Query groupConversationQuery;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
@@ -112,41 +110,6 @@ public class FriendMapAdapter extends RecyclerView.Adapter<FriendMapAdapter.View
                             Double.parseDouble(mFriend.get(holder.getAdapterPosition()).getLatitude())
                             , Double.parseDouble(mFriend.get(holder.getAdapterPosition()).getLongitude()));
                     ((MapActivity) context).mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17.0f));
-
-                }
-            });
-
-            SharedPreferences sharedPreferences = context.getSharedPreferences("email", MODE_PRIVATE);
-            final String currentUid = sharedPreferences.getString("uid", "");
-
-            Query conversationQuery = FirebaseDatabase.getInstance().getReference().child("friendChatRoom").child(currentUid);
-            conversationQuery.addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    String roomName = dataSnapshot.getKey(); //방 목록
-
-                    getMessage(roomName, currentUid, holder);
-                    Log.d("테스트", String.valueOf(roomName));
-                }
-
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                }
-
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
                 }
             });
         }
@@ -157,70 +120,6 @@ public class FriendMapAdapter extends RecyclerView.Adapter<FriendMapAdapter.View
     @Override
     public int getItemCount() {
         return mFriend.size();
-    }
-
-    private void getMessage(String key, String currentUid, final ViewHolder holder){
-
-
-        groupConversationQuery = FirebaseDatabase.getInstance().getReference().child("groupMessage").child(key).limitToLast(1);
-        groupConversationQuery.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String chat = dataSnapshot.child("text").getValue().toString();
-                Log.d("그룹메시지", chat);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        conversationQuery = FirebaseDatabase.getInstance().getReference().child("oneToOneMessage").child(currentUid).child(key).limitToLast(1);
-        conversationQuery.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String chat = dataSnapshot.child("text").getValue().toString();
-                Log.d("1:1메시지", chat);
-                String fromUser = dataSnapshot.child("from").getValue().toString();
-
-             }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
     }
 
 }
