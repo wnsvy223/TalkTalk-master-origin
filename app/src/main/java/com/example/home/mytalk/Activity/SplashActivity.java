@@ -26,8 +26,8 @@ public class SplashActivity extends AwesomeSplash {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseUser user;
-    private boolean isAutoLogin;
     private  String contactRequset;
+    private boolean isChecked;
 
     @Override
     public void initSplash(ConfigSplash configSplash) {
@@ -65,61 +65,37 @@ public class SplashActivity extends AwesomeSplash {
         //configSplash.setAnimTitleTechnique(Techniques.Shake);
         //configSplash.setTitleFont("fonts/myfont.ttf"); //provide string to your font located in assets/fonts/
 
+        Intent intent = getIntent();
+        contactRequset = intent.getStringExtra("FriendChatUid");
+
         SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
-        autoLoginID = autoLogin.getString("inputId", "");
-        autoLoginPW = autoLogin.getString("inputPwd", "");
-        isAutoLogin = false;
+        isChecked = autoLogin.getBoolean("isChecked",false);
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 user = firebaseAuth.getCurrentUser();
-                if (user != null) {
+                SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
+                String uid = sharedPreferences.getString("uid","");
+                if (user != null && isChecked && user.getUid().equals(uid)) {
                     // User is signed in
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                    SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("uid", user.getUid());
-                    editor.putString("email", user.getEmail());
-                    editor.apply();
-
+                    goActivity(TabActivity.class);
                 } else {
                     // User is signed out
                     Log.d(TAG, "onAuthStateChanged:signed_out");
+                    goActivity(MainActivity.class);
                 }
                 // ...
             }
         };
-
-        // firebase 로그인 체크 함수는 초기화 함수에서 확인하고  sharepreference 자동 로그인조건은 animationsFinished()에서 확인하여 시간 단축
-        if(!TextUtils.isEmpty(autoLoginID) && !TextUtils.isEmpty(autoLoginPW)){
-            Log.d("자동로그인 정보 ","아이디:"+ autoLoginID +" / "+"비번:"+ autoLoginPW);
-
-            mAuth.signInWithEmailAndPassword(autoLoginID, autoLoginPW)
-                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                isAutoLogin = true;
-                            }
-                        }
-                    });
-
-        }else {
-            isAutoLogin = false;
-        };
-
-        Intent intent = getIntent();
-        contactRequset = intent.getStringExtra("FriendChatUid");
     }
 
     @Override
     public void animationsFinished() {
-        // 스플래시 애니매이션 끝난후 자동로그인정보가
-        // sharedpreference에 있으면 정보를 가지고 탭액티비로 이동
-        // 정보가 없으면 메인액티비티로 이동
-        if(isAutoLogin){
+        // 스플래시 애니매이션 끝난후 자동로그인 체크박스값이 true이면 탭액티비로 이동 false면 메인액티비티로 이동
+        if(isChecked){
             goActivity(TabActivity.class);
         }else{
             goActivity(MainActivity.class);

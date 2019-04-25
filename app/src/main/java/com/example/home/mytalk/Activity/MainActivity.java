@@ -138,8 +138,7 @@ public class MainActivity extends AppCompatActivity {
                             if(checkBox.isChecked()) { //자동로그인 체크박스 체크되있으면 자동로그인 정보 저장
                                 SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
                                 SharedPreferences.Editor editor = autoLogin.edit();
-                                editor.putString("inputId", editText_email.getText().toString().trim());
-                                editor.putString("inputPwd", editText_password.getText().toString().trim());
+                                editor.putBoolean("isChecked",true); // 자동로그인 체크상태값 저장
                                 editor.apply();
                             }
                             String deviceToken = FirebaseInstanceId.getInstance().getToken();
