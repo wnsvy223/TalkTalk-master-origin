@@ -46,8 +46,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
     public  NotificationCompat.Builder notificationBuilder;
     public String KEY_REPLY = "key_reply";
     public String Body;
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private String currentUid;
     private String currentEmail;
     private NotificationManager notificationManager;
@@ -57,22 +55,9 @@ public class FirebaseMessageService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
 
         SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
-        String autoLoginID = autoLogin.getString("inputId", "");
-        String autoLoginPW = autoLogin.getString("inputPwd", "");
         SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
         currentUid = sharedPreferences.getString("uid", "");
         currentEmail =  sharedPreferences.getString("email", "");
-
-        mAuth = FirebaseAuth.getInstance();
-        mAuth.signInWithEmailAndPassword(autoLoginID, autoLoginPW)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            Log.d("current user : ",currentUid + "current user : " + currentEmail );
-                        }
-                    }
-                }); // 데이터베이스 Rule이 인증된 유저만 가능하도록 했기때문에 푸시메시지 받았을때 인증처리 로직 추가 수행.
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE );
         @SuppressLint("InvalidWakeLockTag") PowerManager.WakeLock wakeLock = pm.newWakeLock( PowerManager.PARTIAL_WAKE_LOCK
