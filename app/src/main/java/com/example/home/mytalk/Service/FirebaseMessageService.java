@@ -54,7 +54,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
     public void onMessageReceived(final RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        SharedPreferences autoLogin = getSharedPreferences("autoLogin", MODE_PRIVATE);
         SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
         currentUid = sharedPreferences.getString("uid", "");
         currentEmail =  sharedPreferences.getString("email", "");
@@ -65,8 +64,6 @@ public class FirebaseMessageService extends FirebaseMessagingService {
         wakeLock.acquire(3000);
         // PARTIAL_WAKE_LOCK : 화면을 깨우지 않고 잠금화면에 푸시 알림 표시 및 진동&소리 제공
         // SCREEN_DIM_WAKE_LOCK (deprecated ) : 화면을 깨우고 푸시 알림 표시 및 진동&소리 제공
-
-
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("friendChatRoom").child(currentUid);
         databaseReference.addValueEventListener(new ValueEventListener() {
