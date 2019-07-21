@@ -22,8 +22,8 @@ import java.util.ArrayList;
 
 public class InfiniteScrollAdapter extends RecyclerView.Adapter<InfiniteScrollAdapter.InfiniteScrollHolder> {
 
-    Context context;
-    ArrayList<CardViewItem> cardViewItems;
+    private Context context;
+    private ArrayList<CardViewItem> cardViewItems;
 
     public InfiniteScrollAdapter(Context context, ArrayList<CardViewItem> cardViewItems){
         this.context = context;
@@ -45,7 +45,7 @@ public class InfiniteScrollAdapter extends RecyclerView.Adapter<InfiniteScrollAd
         holder.dirText.setText(cardViewItems.get(position).getDirector());
         Glide.with(context).load(cardViewItems.get(position).getImage()).override(300,400).into(holder.imageView);
 
-        holder.imageView.setOnClickListener(new View.OnClickListener() {
+        holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String link = "https://movie.naver.com" + cardViewItems.get(holder.getAdapterPosition()).getLink();
@@ -73,11 +73,11 @@ public class InfiniteScrollAdapter extends RecyclerView.Adapter<InfiniteScrollAd
     }
 
     class InfiniteScrollHolder extends RecyclerView.ViewHolder{
-        TextView nameText;
-        ImageView imageView;
-        TextView typeText;
-        TextView dirText;
-
+        private TextView nameText;
+        private ImageView imageView;
+        private TextView typeText;
+        private TextView dirText;
+        private View mView;
 
         public InfiniteScrollHolder(View itemView) {
             super(itemView);
@@ -85,6 +85,7 @@ public class InfiniteScrollAdapter extends RecyclerView.Adapter<InfiniteScrollAd
             this.imageView = (ImageView)itemView.findViewById(R.id.image);
             this.typeText = (TextView)itemView.findViewById(R.id.typeTxt);
             this.dirText = (TextView)itemView.findViewById(R.id.dirTxt);
+            mView = itemView;
         }
     }
 }

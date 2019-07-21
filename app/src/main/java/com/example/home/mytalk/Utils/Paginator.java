@@ -150,7 +150,6 @@ public class Paginator {
                     if(element.select("dl[class=info_txt1] dt[class=tit_t2]").first() != null){
                         String director = element.select("dl[class=info_txt1] dt[class=tit_t2]").first().nextElementSibling().text();
                         dirList.add(director);
-                        Log.d("테스트 : " , String.valueOf(director));
                     }
                     if(element.select("dl[class=info_txt1] dt").first() != null){
                         Element elmType = element.select("dl[class=info_txt1] dt").first().nextElementSibling();
