@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -17,6 +18,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -137,22 +139,28 @@ public class Paginator {
                 titlList.clear();
                 linkList.clear();
                 for(Element element : elements){
-                    String imgUrl = element.select("li div[class=thumb] a img").attr("src");
-                    imgList.add(imgUrl);
-
-                    String title =  element.select("li dt[class=tit] a").text();
-                    titlList.add(title);
-
-                    Element elmDir = element.select("dt.tit_t2").first().nextElementSibling();
-                    String director = "감독 : " + elmDir.select("a").text();
-                    dirList.add(director);
-
-                    Element elmType = element.select("dl[class=info_txt1] dt").first().nextElementSibling();
-                    String type = elmType.select("dd").text();
-                    typeList.add(type);
-
-                    String link = element.select("li div[class=thumb] a").attr("href");
-                    linkList.add(link);
+                    if(element.select("li div[class=thumb] a img") != null){
+                        String imgUrl = element.select("li div[class=thumb] a img").attr("src");
+                        imgList.add(imgUrl);
+                    }
+                    if(element.select("li dt[class=tit] a") != null){
+                        String title =  element.select("li dt[class=tit] a").text();
+                        titlList.add(title);
+                    }
+                    if(element.select("dl[class=info_txt1] dt[class=tit_t2]").first() != null){
+                        String director = element.select("dl[class=info_txt1] dt[class=tit_t2]").first().nextElementSibling().text();
+                        dirList.add(director);
+                        Log.d("테스트 : " , String.valueOf(director));
+                    }
+                    if(element.select("dl[class=info_txt1] dt").first() != null){
+                        Element elmType = element.select("dl[class=info_txt1] dt").first().nextElementSibling();
+                        String type = elmType.select("dd").text();
+                        typeList.add(type);
+                    }
+                    if(element.select("li div[class=thumb] a") != null){
+                        String link = element.select("li div[class=thumb] a").attr("href");
+                        linkList.add(link);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
