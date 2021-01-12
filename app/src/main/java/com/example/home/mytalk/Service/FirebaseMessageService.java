@@ -1,6 +1,7 @@
 package com.example.home.mytalk.Service;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -19,6 +20,7 @@ import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.example.home.mytalk.Activity.ChatActivity;
 import com.example.home.mytalk.R;
 import com.example.home.mytalk.Utils.RoundedTransformation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -120,27 +122,34 @@ public class FirebaseMessageService extends FirebaseMessagingService {
             String group_click_action = remoteMessage.getData().get("gclick_action_message");
             String group_room_name = remoteMessage.getData().get("groom");
 
+            ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            List<ActivityManager.RunningTaskInfo> info = activityManager.getRunningTasks(1);
+            String activity = info.get(0).topActivity.getClassName();
 
             if (tag != null) {
-                switch (tag) {
-                    case "contact":
-                        setNotification("contact",Photo, Title, Body, click_action, from_user_id);
-                        break;
+                if((activity.equals("com.example.home.mytalk.Activity.ChatActivity"))){
+                    return;
+                }else{
+                    switch (tag) {
+                        case "contact":
+                            setNotification("contact",Photo, Title, Body, click_action, from_user_id);
+                            break;
 
-                    case "one":
-                        //setNotification(userPhotoImage, name, message, click_action_message, one_room_name)
-                        if (!token.equals(tokenSender)) { //메시지 보낸사람 기기는 푸시X
-                            setNotification("one",userPhotoImage, name, message, click_action_message, one_room_name);
-                        }
-                        break;
+                        case "one":
+                            //setNotification(userPhotoImage, name, message, click_action_message, one_room_name)
+                            if (!token.equals(tokenSender)) { //메시지 보낸사람 기기는 푸시X
+                                setNotification("one",userPhotoImage, name, message, click_action_message, one_room_name);
+                            }
+                            break;
 
-                    case "group":
-                        //setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
-                        if (!group_token.equals(sender_token)) { //메시지 보낸사람 기기는 푸시X
-                            setNotification("group",group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
-                        }
-                        break;
-                    default:
+                        case "group":
+                            //setNotification(group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
+                            if (!group_token.equals(sender_token)) { //메시지 보낸사람 기기는 푸시X
+                                setNotification("group",group_userPhotoImage, group_name, group_message, group_click_action, group_room_name);
+                            }
+                            break;
+                        default:
+                    }
                 }
             }
         }

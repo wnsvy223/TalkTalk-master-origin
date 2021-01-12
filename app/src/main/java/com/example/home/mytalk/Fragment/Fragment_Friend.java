@@ -54,22 +54,25 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
 
         mRecyclerView = (RecyclerView)view.findViewById(R.id.rvFriend) ;
         mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(getContext());
+        //mLayoutManager = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         rootLayout = (CoordinatorLayout)view.findViewById(R.id.coordinatorLayout);
         mFriend = new ArrayList<>();    //새 리스트 만들고
-
-        //mAdapter = new FriendAdapter(mFriend , getActivity());  // 리스트에 나타낼 재료들 준비하고 어댑터 객체생성후
-        //mRecyclerView.setAdapter(mAdapter);   //어댑터 연결
         friendListData = new ArrayList<>();
+
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email",MODE_PRIVATE );
+        String userID = sharedPreferences.getString("uid", "");
+        getFriebaseAddUserReference(userID);
+
         friendAdapterExpandable = new FriendAdapterExpandable(friendListData, getContext());
         mRecyclerView.setAdapter(friendAdapterExpandable);
 
         return view;
     }
 
-    private void getFriebaseAddUserReference(){
+    private void getFriebaseAddUserReference(String userID){
 
             FriendRef = FirebaseDatabase.getInstance().getReference("AddFriend").child(userID);
             FriendRef.addValueEventListener(new ValueEventListener() {
@@ -95,21 +98,15 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
         UserDataRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                //mFriend.clear();
                 friendListData.clear();
                 for(DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     Friend friend = postSnapshot.getValue(Friend.class);
                     String key = friend.getKey();
                     if(!TextUtils.isEmpty(key) && contact.contains(key)){
-                        //mFriend.add(friend)
                         FriendAdapterExpandable.Item friendData = new FriendAdapterExpandable.Item(FriendAdapterExpandable.HEADER,  friend.getName(),friend.getPhoto(),friend.getState(),null,null,friend.getKey());
                         friendData.invisibleChildren = new ArrayList<>();
                         friendData.invisibleChildren.add(new FriendAdapterExpandable.Item(FriendAdapterExpandable.CHILD, null,null,null,friend.getLatitude(), friend.getLongitude(),friend.getKey()));
                         friendListData.add(friendData);
-                        if(key.equals(userID)){
-                            //mFriend.remove(friend);
-                        }
-                        //mAdapter.notifyDataSetChanged();
                         friendAdapterExpandable.notifyDataSetChanged();
                     }
                 }
@@ -125,9 +122,9 @@ public class Fragment_Friend extends  android.support.v4.app.Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email",MODE_PRIVATE );
-        userID = sharedPreferences.getString("uid", "");
-        getFriebaseAddUserReference();
+        //SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email",MODE_PRIVATE );
+        //String uid = sharedPreferences.getString("uid", "");
+        //getFriebaseAddUserReference(uid);
     }
 
     @Override
